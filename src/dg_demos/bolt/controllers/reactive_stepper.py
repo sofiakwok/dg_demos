@@ -44,6 +44,7 @@ from dg_tools.dynamic_graph.dg_tools_entities import (
     VectorIntegrator,
 )
 
+print("imports done")
 
 class BoltWBCStepper:
     def __init__(self, prefix, friction_coeff, is_real_robot):
@@ -162,7 +163,7 @@ class BoltWBCStepper:
         self.des_ori_pos_rpy_sin.value = np.array([0.0, 0.0, 0.0])
 
         self.wbc.cnt_array_sin.value = np.array([1.0, 1.0])
-        
+
         ###
         # Create the stepper.
         self.stepper = stepper = DcmReactiveStepper()
@@ -309,8 +310,10 @@ class BoltWBCStepper:
             wbc.imps[1],
         )
         plug_des_vel(stepper.stepper.right_foot_velocity_sout, wbc.imps[1])
+        print("done initializing and plugging")
 
     def initialize(self):
+        print("initializing function")
         # PART 1: Positions
         # Because this controller is specific for bolt, we can hard
         # code the values here.
