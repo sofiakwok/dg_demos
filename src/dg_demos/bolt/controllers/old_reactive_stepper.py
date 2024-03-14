@@ -15,9 +15,9 @@ import dynamic_graph as dg
 
 from robot_properties_bolt.config import BoltConfig
 from mim_control.dynamic_graph.wbc_graph import WholeBodyController
-#from reactive_planners.dynamic_graph.biped_stepper import BipedStepper
-from reactive_planners_cpp import DcmReactiveStepper
-#from dg_tools.sliders import Sliders
+from reactive_planners.dynamic_graph.biped_stepper import BipedStepper
+
+from dg_tools.sliders import Sliders
 
 from dg_tools.utils import (
     constVector,
@@ -44,27 +44,25 @@ from dg_tools.dynamic_graph.dg_tools_entities import (
     VectorIntegrator,
 )
 
-print("imports done")
 
 class BoltWBCStepper:
     def __init__(self, prefix, friction_coeff, is_real_robot):
-        print("building whole body control robot")
         pin_robot = BoltConfig.buildRobotWrapper()
-        print("getting end effector names")
         end_effector_names = BoltConfig.end_effector_names
 
         # sliders to tune p and d gains.
         self.is_real_robot = is_real_robot
-        # self.sliders = Sliders(4, prefix + "_sliders")
-        # if self.is_real_robot:
-        #     # self.sliders.set_scale_values([100, 100, 100, 1])#kp,kd eef
-        #     self.sliders.set_scale_values([100, 0.5, 10, 0.5])
-        # else:
-        #     self.sliders.set_scale_values([5, 5, 10.0, 10.0])
-        # self.slider_A = self.sliders.slider_A.vector.sout
-        # self.slider_B = self.sliders.slider_B.vector.sout
-        # self.slider_C = self.sliders.slider_C.vector.sout
-        # self.slider_D = self.sliders.slider_D.vector.sout
+        self.sliders = Sliders(4, prefix + "_sliders")
+        if self.is_real_robot:
+            # self.sliders.set_scale_values([100, 100, 100, 1])#kp,kd eef
+            self.sliders.set_scale_values([100, 0.5, 10, 0.5])
+        else:
+            self.sliders.set_scale_values([5, 5, 10.0, 10.0])
+
+        self.slider_A = self.sliders.slider_A.vector.sout
+        self.slider_B = self.sliders.slider_B.vector.sout
+        self.slider_C = self.sliders.slider_C.vector.sout
+        self.slider_D = self.sliders.slider_D.vector.sout
 
         # self.v_des_slider = stack_two_vectors(stack_two_vectors(subtract_vec_vec(self.slider_A, self.slider_B),\
         #                                                         subtract_vec_vec(self.slider_C, self.slider_D), 1, 1),
@@ -166,7 +164,9 @@ class BoltWBCStepper:
 
         ###
         # Create the stepper.
-        self.stepper = stepper = DcmReactiveStepper()
+        self.stepper = stepper = BipedStepper(
+            prefix + "_stepper", pin_robot, end_effector_names
+        )
 
         # Impedance controllers.
         for i, imp in enumerate(wbc.imps):
@@ -310,10 +310,8 @@ class BoltWBCStepper:
             wbc.imps[1],
         )
         plug_des_vel(stepper.stepper.right_foot_velocity_sout, wbc.imps[1])
-        print("done initializing and plugging")
 
     def initialize(self):
-        print("initializing function")
         # PART 1: Positions
         # Because this controller is specific for bolt, we can hard
         # code the values here.
@@ -404,7 +402,7 @@ class BoltWBCStepper:
     def plug(self, robot, base_position, base_velocity):
         self.base_position = base_position
         self.robot = robot
-        #self.sliders.plug_slider_signal(robot.device.slider_positions)
+        self.sliders.plug_slider_signal(robot.device.slider_positions)
         self.stepper.plug(robot, base_position, base_velocity)
         self.wbc.plug(robot, base_position, base_velocity)
         self.plug_swing_foot_forces()
@@ -592,7 +590,6 @@ def get_controller(prefix="biped_wbc_stepper", is_real_robot=False):
 
 
 if ("robot" in globals()) or ("robot" in locals()):
-    print("starting code")
     from dg_demos.bolt.controllers.pd_controller import (
         get_controller as get_pd_controller,
     )

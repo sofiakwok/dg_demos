@@ -4,6 +4,7 @@ import dynamic_graph as dg
 from dynamic_graph.sot.core.control_pd import ControlPD
 from robot_properties_bolt.config import BoltConfig
 
+from dg_tools.sliders import Sliders
 from dynamic_graph.sot.tools import Oscillator
 
 from dynamic_graph.sot.core.math_small_entities import (
@@ -19,6 +20,8 @@ np.set_printoptions(suppress=True)
 class BoltPDController(object):
     def __init__(self, prefix=""):
         self.prefix = prefix
+        self.sliders = Sliders(4, self.prefix)
+        self.sliders.set_scale_values([1.5, 2.0, 1.0, 1.0])
 
         self.bolt_config = BoltConfig()
 
@@ -73,6 +76,7 @@ class BoltPDController(object):
 
     def plug_to_robot(self, robot):
         self.plug(
+            robot.device.slider_positions,
             robot.device.joint_positions,
             robot.device.joint_velocities,
             robot.device.ctrl_joint_torques,
@@ -80,14 +84,15 @@ class BoltPDController(object):
 
     def plug(
         self,
+        slider_positions,
         joint_positions,
         joint_velocities,
         ctrl_joint_torques,
     ):
         # Plug the sliders.
-        # self.sliders.plug_slider_signal(slider_positions)
-        # # Offset the sliders by the current value.
-        # self.sliders.set_offset_values(-slider_positions.value)
+        self.sliders.plug_slider_signal(slider_positions)
+        # Offset the sliders by the current value.
+        self.sliders.set_offset_values(-slider_positions.value)
         # plug the desired quantity signals in the pd controller.
         dg.plug(joint_positions, self.pd.position)
         dg.plug(joint_velocities, self.pd.velocity)
