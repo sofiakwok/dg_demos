@@ -125,6 +125,7 @@ class Solo12WBCStepper:
 
         ###
         # Create the stepper.
+        print("creating stepper")
         self.stepper = stepper = QuadrupedStepper(
             prefix + "_stepper", pin_robot, end_effector_names
         )
@@ -279,10 +280,18 @@ def get_controller(prefix="solo12_wbc_stepper"):
     return Solo12WBCStepper(prefix, 0.6)
 
 
-if "robot" in globals():
+if True: #"robot" in globals():
     from dg_demos.solo12.controllers.pd_controller import (
         get_controller as get_pd_controller,
     )
+
+    # Create a PD controller to setup the robot at the beginning.
+    pd_ctrl = get_pd_controller()
+
+    # Setup the main controller.
+    ctrl = Solo12WBCStepper("solo12_wbc_stepper", 0.6)
+    print("done setting up controller")
+
     from dg_vicon_sdk.dynamic_graph.entities import ViconClientEntity
 
     # Init vicon.
@@ -291,11 +300,7 @@ if "robot" in globals():
     vicon.connect_to_vicon("10.32.27.53:801")  # MPI MIM vicon.
     vicon.add_object_to_track("solo12/solo12")
 
-    # Create a PD controller to setup the robot at the beginning.
-    pd_ctrl = get_pd_controller()
-
-    # Setup the main controller.
-    ctrl = Solo12WBCStepper("solo12_wbc_stepper", 0.6)
+    
 
     # Zero the initial position from the vicon signal.
     base_posture_sin = vicon.signal("solo12_position")

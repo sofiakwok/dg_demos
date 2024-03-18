@@ -4,8 +4,6 @@ import dynamic_graph as dg
 from dynamic_graph.sot.core.control_pd import ControlPD
 from robot_properties_bolt.config import BoltConfig
 
-from dg_tools.sliders import Sliders
-
 from dynamic_graph.sot.tools import Oscillator
 
 from dynamic_graph.sot.core.math_small_entities import (

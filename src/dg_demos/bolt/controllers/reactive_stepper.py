@@ -6,16 +6,15 @@ Copyright (c) 2021, New York University and Max Planck Gesellschaft.
 Author: Julian Viereck, Elham Daneshmand
 Date:   Oct 26, 2021
 """
-
 import numpy as np
 
 #np.set_printoptions(suppress=True, precision=3)
-import pinocchio as pin
+#import pinocchio as pin
 import dynamic_graph as dg
 
 from robot_properties_bolt.config import BoltConfig
 from mim_control.dynamic_graph.wbc_graph import WholeBodyController
-#from reactive_planners.dynamic_graph.biped_stepper import BipedStepper
+from reactive_planners.dynamic_graph.biped_stepper import BipedStepper
 from reactive_planners_cpp import DcmReactiveStepper
 #from dg_tools.sliders import Sliders
 
@@ -34,7 +33,7 @@ from dg_tools.utils import (
 )
 from dynamic_graph.sot.core.math_small_entities import Component_of_vector
 
-# from dynamic_graph.sot.core.math_small_entities import Add_of_double
+from dynamic_graph.sot.core.math_small_entities import Add_of_double
 
 from dg_tools.dynamic_graph.dg_tools_entities import (
     CreateWorldFrame,
@@ -53,23 +52,8 @@ class BoltWBCStepper:
         print("getting end effector names")
         end_effector_names = BoltConfig.end_effector_names
 
-        # sliders to tune p and d gains.
         self.is_real_robot = is_real_robot
-        # self.sliders = Sliders(4, prefix + "_sliders")
-        # if self.is_real_robot:
-        #     # self.sliders.set_scale_values([100, 100, 100, 1])#kp,kd eef
-        #     self.sliders.set_scale_values([100, 0.5, 10, 0.5])
-        # else:
-        #     self.sliders.set_scale_values([5, 5, 10.0, 10.0])
-        # self.slider_A = self.sliders.slider_A.vector.sout
-        # self.slider_B = self.sliders.slider_B.vector.sout
-        # self.slider_C = self.sliders.slider_C.vector.sout
-        # self.slider_D = self.sliders.slider_D.vector.sout
 
-        # self.v_des_slider = stack_two_vectors(stack_two_vectors(subtract_vec_vec(self.slider_A, self.slider_B),\
-        #                                                         subtract_vec_vec(self.slider_C, self.slider_D), 1, 1),
-        #                                       zero_vec(1, ""), 2, 1)
-        ###
         # Create the whole body controller.
         qp_penalty_weights = np.array([1, 1, 1e6, 1e6, 1e6, 1])
         self.wbc = wbc = WholeBodyController(
@@ -105,36 +89,6 @@ class BoltWBCStepper:
             self.wbc.kb_sin.value = self.kf_eff * np.array([100, 100, 0.0])
             self.wbc.db_sin.value = self.kf_eff * np.array([0.1, 0.1, 0.0])
 
-        # if self.is_real_robot:
-        # self.wbc.kc_sin.sin = mul_vec_vec(constVector(self.kf_eff * np.array([0., 0., 0.])), self.slider_A,"")
-        #     self.wbc.dc_sin = mul_vec_vec(constVector(self.kf_eff * np.array([0., 0., 0.])), self.slider_B,"")
-        #     self.wbc.kb_sin = mul_vec_vec(constVector(self.kf_eff * np.array([0., 0., 0.])), self.slider_C,"")
-        #     self.wbc.db_sin = mul_vec_vec(constVector(self.kf_eff * np.array([0., 0., 0.])), self.slider_D,"")
-        # else:
-        # self.wbc.kc_sin = mul_vec_vec(constVector(self.kf_eff * np.array([0., 0., 0.])), self.slider_A,"")
-        # self.wbc.dc_sin = mul_vec_vec(constVector(self.kf_eff * np.array([0., 0., 0.])), self.slider_B,"")
-        # self.wbc.kb_sin = mul_vec_vec(constVector(self.kf_eff * np.array([0., 0., 0.])), self.slider_C,"")
-        # self.wbc.db_sin = mul_vec_vec(constVector(self.kf_eff * np.array([0., 0., 0.])), self.slider_D,"")
-        # Debug, plug som silders to the gains if needed.
-        # For the centroidal controllers base orientation (roll, pitch, yaw) PD.
-        # dg.plug(
-        #     stack_two_vectors(
-        #         self.sliders.C_vec,
-        #         constVector(np.array([25.0, 25.0])),
-        #         1,
-        #         2
-        #     ),
-        #     wbc.kb_sin
-        # )
-        # dg.plug(
-        #     stack_two_vectors(
-        #         self.sliders.D_vec,
-        #         constVector(np.array([10.0, 10.0])),
-        #         1,
-        #         2
-        #     ),
-        #     wbc.db_sin
-        # )
         if self.is_real_robot:
             wbc.des_com_pos_sin.value = np.array(
                 [0.0, 0.0, 0.38487417 - 0.05]
@@ -166,7 +120,10 @@ class BoltWBCStepper:
 
         ###
         # Create the stepper.
-        self.stepper = stepper = DcmReactiveStepper()
+        print("creating stepper")
+        self.stepper = stepper = BipedStepper(
+            prefix + "_stepper", pin_robot, end_effector_names
+        )
 
         # Impedance controllers.
         for i, imp in enumerate(wbc.imps):
@@ -269,7 +226,10 @@ class BoltWBCStepper:
         )
 
         # Connect the stepper with the wbc.
-        dg.plug(stepper.stepper.contact_array_sout, wbc.cnt_array_sin)
+        #dg.plug(stepper.stepper.contact_array_sout, wbc.cnt_array_sin)
+        #dg.plug(stepper.stepper.c, wbc.cnt_array_sin)
+
+        print("done initializing")
 
         def plug_des_pos(stepper_pos, imp):
             dg.plug(
@@ -587,15 +547,18 @@ class BoltWBCStepper:
             )
 
 
-def get_controller(prefix="biped_wbc_stepper", is_real_robot=False):
+def get_controller(prefix="biped_wbc_stepper", is_real_robot=True):
     return BoltWBCStepper(prefix, 0.6, is_real_robot)
 
 
-if ("robot" in globals()) or ("robot" in locals()):
-    print("starting code")
+if True: #("robot" in globals()) or ("robot" in locals()):
     from dg_demos.bolt.controllers.pd_controller import (
         get_controller as get_pd_controller,
     )
+
+    # Setup the main controller.
+    ctrl = get_controller("biped_wbc_stepper", True)
+
     from dg_vicon_sdk.dynamic_graph.entities import ViconClientEntity
 
     # Init vicon.
@@ -608,8 +571,7 @@ if ("robot" in globals()) or ("robot" in locals()):
     # Create a PD controller to setup the robot at the beginning.
     # pd_ctrl = get_pd_controller()
 
-    # Setup the main controller.
-    ctrl = get_controller("biped_wbc_stepper", True)
+    
 
     # Zero the initial position from the vicon signal.
     base_posture_sin = vicon.signal("biped_position")
@@ -639,92 +601,6 @@ if ("robot" in globals()) or ("robot" in locals()):
     des_yaw = 0.0
     ctrl.des_ori_pos_rpy_sin.value = np.array([0.0, 0.0, des_yaw])
     ctrl.des_com_vel_sin.value = np.array([0.0, 0.0, 0.0])
-
-    # Setup the gamepad subscriber.
-    # robot.ros.ros_subscribe.add('vector', 'gamepad_axes', '/gamepad_axes')
-    # gamepad_axes = robot.ros.ros_subscribe.signal('gamepad_axes')
-    # gamepad_axes.value = np.zeros(8) # Initital value
-
-    # def go_gamepad():
-    #     # Yaw control via the left and right trigger on the gamepad.
-    #     yaw_integrator = VectorIntegrator('yaw_integrator')
-    #     dg.plug(
-    #         mul_double_vec(
-    #             -0.75,
-    #             subtract_vec_vec(
-    #                 selec_vector(gamepad_axes, 7, 8),
-    #                 selec_vector(gamepad_axes, 6, 7),
-    #             )
-    #         ),
-    #         yaw_integrator.sin
-    #     )
-    #
-    #     dg.plug(
-    #         stack_two_vectors(
-    #             zero_vec(2),
-    #             yaw_integrator.sout,
-    #             2,
-    #             1
-    #         ),
-    #         ctrl.des_ori_pos_rpy_sin
-    #     )
-    #
-    # def go_gamepad_wbc_vel():
-    #     """Control the velocity via the whole body controller. """
-    #     op_quat2rpy = PoseQuaternionToPoseRPY("")
-    #     dg.plug(base_posture_local_sin, op_quat2rpy.sin)
-    #
-    #     op_rpy2matrix = RPYToRotationMatrix("")
-    #     dg.plug(
-    #         stack_two_vectors(
-    #             zero_vec(2, ''),
-    #             selec_vector(op_quat2rpy.sout, 5, 6),
-    #             2,
-    #             1
-    #         ),
-    #         op_rpy2matrix.sin
-    #     )
-    #
-    #     vel_gain = 0.70
-    #     dg.plug(
-    #         multiply_mat_vec(
-    #             op_rpy2matrix.sout,
-    #             stack_two_vectors(
-    #                 # Swap x and y axis from the gamepad.
-    #                 # For the robot, x points forward while it's y on the joystick.
-    #                 stack_two_vectors(
-    #                     mul_double_vec( vel_gain, selec_vector(gamepad_axes, 1, 2)),
-    #                     mul_double_vec(-vel_gain, selec_vector(gamepad_axes, 0, 1)),
-    #                     1,
-    #                     1
-    #                 ),
-    #                 zero_vec(1, ''),
-    #                 2,
-    #                 1
-    #             ),
-    #         ),
-    #         ctrl.wbc.des_com_vel_sin
-    #     )
-    #
-    #     dg.plug(
-    #         stack_two_vectors(
-    #             # Swap x and y axis from the gamepad.
-    #             # For the robot, x points forward while it's y on the joystick.
-    #             stack_two_vectors(
-    #                 mul_double_vec( vel_gain, selec_vector(gamepad_axes, 1, 2)),
-    #                 mul_double_vec(-vel_gain, selec_vector(gamepad_axes, 0, 1)),
-    #                 1,
-    #                 1
-    #             ),
-    #             zero_vec(1, ''),
-    #             2,
-    #             1
-    #         ),
-    #         ctrl.des_com_vel_sin
-    #         # ctrl.wbc.des_com_vel_sin
-    #     )
-    #     # ctrl.wbc.des_com_vel_sin.value = np.zeros(3)
-    #     # ctrl.des_com_vel_sin.value = np.zeros(3)
 
     # def go_pd():
     #     pd_ctrl.plug_to_robot(robot)
