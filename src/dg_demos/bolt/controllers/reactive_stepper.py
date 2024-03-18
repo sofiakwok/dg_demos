@@ -43,13 +43,9 @@ from dg_tools.dynamic_graph.dg_tools_entities import (
     VectorIntegrator,
 )
 
-print("imports done")
-
 class BoltWBCStepper:
     def __init__(self, prefix, friction_coeff, is_real_robot):
-        print("building whole body control robot")
         pin_robot = BoltConfig.buildRobotWrapper()
-        print("getting end effector names")
         end_effector_names = BoltConfig.end_effector_names
 
         self.is_real_robot = is_real_robot
@@ -120,7 +116,6 @@ class BoltWBCStepper:
 
         ###
         # Create the stepper.
-        print("creating stepper")
         self.stepper = stepper = BipedStepper(
             prefix + "_stepper", pin_robot, end_effector_names
         )
@@ -229,8 +224,6 @@ class BoltWBCStepper:
         #dg.plug(stepper.stepper.contact_array_sout, wbc.cnt_array_sin)
         #dg.plug(stepper.stepper.c, wbc.cnt_array_sin)
 
-        print("done initializing")
-
         def plug_des_pos(stepper_pos, imp):
             dg.plug(
                 stack_two_vectors(stepper_pos, zero_vec(4, "zero4"), 3, 4),
@@ -270,10 +263,8 @@ class BoltWBCStepper:
             wbc.imps[1],
         )
         plug_des_vel(stepper.stepper.right_foot_velocity_sout, wbc.imps[1])
-        print("done initializing and plugging")
 
     def initialize(self):
-        print("initializing function")
         # PART 1: Positions
         # Because this controller is specific for bolt, we can hard
         # code the values here.
@@ -318,22 +309,13 @@ class BoltWBCStepper:
         control_period = 0.001
         planner_loop = 0.010
 
-        self.stepper.stepper.initialize(
-            is_left_leg_in_contact,
-            l_min,
-            l_max,
-            w_min,
-            w_max,
-            t_min,
-            t_max,
-            l_p,
-            self.com_height,
+        parameter_vector = np.array([is_left_leg_in_contact, l_min, l_max, w_min, w_max, t_min, t_max, l_p, self.com_height, mid_air_foot_height, control_period, planner_loop])
+
+        self.stepper.stepper.initializeStepper(
+            np.concatenate((parameter_vector,
             weight,
-            mid_air_foot_height,
-            control_period,
-            planner_loop,
             np.array([0.0, 0.1235, self.eff_offset]),
-            np.array([0.0, -0.1235, self.eff_offset]),
+            np.array([0.0, -0.1235, self.eff_offset])), axis=None)
         )
 
         ###
@@ -551,7 +533,7 @@ def get_controller(prefix="biped_wbc_stepper", is_real_robot=True):
     return BoltWBCStepper(prefix, 0.6, is_real_robot)
 
 
-if True: #("robot" in globals()) or ("robot" in locals()):
+if ("robot" in globals()) or ("robot" in locals()):
     from dg_demos.bolt.controllers.pd_controller import (
         get_controller as get_pd_controller,
     )
