@@ -541,22 +541,12 @@ if ("robot" in globals()) or ("robot" in locals()):
     # Setup the main controller.
     ctrl = get_controller("biped_wbc_stepper", True)
 
-    from dg_vicon_sdk.dynamic_graph.entities import ViconClientEntity
-
-    # Init vicon.
-    vicon = ViconClientEntity("vicon_entity")
-    # vicon.connect_to_vicon("172.24.117.119:801")  # NYU MIM vicon.
-    # vicon.connect_to_vicon("10.32.27.53:801")  # MPI MIM vicon.
-    vicon.connect_to_vicon("10.32.3.16")  # MPI Bolt vicon.
-    vicon.add_object_to_track("biped/biped")
-
-    # Create a PD controller to setup the robot at the beginning.
-    # pd_ctrl = get_pd_controller()
-
+    from dg_optitrack import MinimalSubscriber
     
+    mocap = MinimalSubscriber()
 
     # Zero the initial position from the vicon signal.
-    base_posture_sin = vicon.signal("biped_position")
+    base_posture_sin = mocap.signal()
 
     op = CreateWorldFrame("wf")
     dg.plug(base_posture_sin, op.frame_sin)
