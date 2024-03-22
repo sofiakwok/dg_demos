@@ -533,7 +533,7 @@ def get_controller(prefix="biped_wbc_stepper", is_real_robot=True):
     return BoltWBCStepper(prefix, 0.6, is_real_robot)
 
 
-if ("robot" in globals()) or ("robot" in locals()):
+if True: #("robot" in globals()) or ("robot" in locals()):
     from dg_demos.bolt.controllers.pd_controller import (
         get_controller as get_pd_controller,
     )
@@ -541,13 +541,19 @@ if ("robot" in globals()) or ("robot" in locals()):
     # Setup the main controller.
     ctrl = get_controller("biped_wbc_stepper", True)
 
-    from dg_optitrack import MinimalSubscriber
-    
+    import rclpy
+    from dg_optitrack.subscriber import MinimalSubscriber
+    # from dg_optitrack.dg_optitrack.subscriber import MinimalSubscriber
+
+    rclpy.init()
     mocap = MinimalSubscriber()
+    rclpy.spin_once(mocap, timeout_sec = 0.1)
 
-    # Zero the initial position from the vicon signal.
-    base_posture_sin = mocap.signal()
-
+    # Zero the initial position from the mocap signal.
+    pose = mocap.signal()
+    print("base_posture_sin: " + str(pose))
+    #need to convert np array to signal type for dg.plug to work
+    base_posture_sin = constVector(pose, "")
     op = CreateWorldFrame("wf")
     dg.plug(base_posture_sin, op.frame_sin)
     op.set_which_dofs(np.array([1.0, 1.0, 0.0, 0.0, 0.0, 0.0]))
