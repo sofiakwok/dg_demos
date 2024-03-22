@@ -533,7 +533,7 @@ def get_controller(prefix="biped_wbc_stepper", is_real_robot=True):
     return BoltWBCStepper(prefix, 0.6, is_real_robot)
 
 
-if True: #("robot" in globals()) or ("robot" in locals()):
+if ("robot" in globals()) or ("robot" in locals()):
     from dg_demos.bolt.controllers.pd_controller import (
         get_controller as get_pd_controller,
     )
@@ -541,10 +541,9 @@ if True: #("robot" in globals()) or ("robot" in locals()):
     # Setup the main controller.
     ctrl = get_controller("biped_wbc_stepper", True)
 
+    #Get mocap data - get one set of data, then stop
     import rclpy
     from dg_optitrack.subscriber import MinimalSubscriber
-    # from dg_optitrack.dg_optitrack.subscriber import MinimalSubscriber
-
     rclpy.init()
     mocap = MinimalSubscriber()
     rclpy.spin_once(mocap, timeout_sec = 0.1)
@@ -568,8 +567,10 @@ if True: #("robot" in globals()) or ("robot" in locals()):
     )
     #
     # Create the base velocity using the IMU.
+    velocity = mocap.velocity()
+    biped_velocity = constVector(velocity, "")
     base_velocity_sin = stack_two_vectors(
-        selec_vector(vicon.signal("biped_velocity_body"), 0, 3),
+        selec_vector(biped_velocity, 0, 3),
         robot.device.base_gyroscope,
         3,
         3,
