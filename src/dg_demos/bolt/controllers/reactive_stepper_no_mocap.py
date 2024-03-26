@@ -541,15 +541,8 @@ if ("robot" in globals()) or ("robot" in locals()):
     # Setup the main controller.
     ctrl = get_controller("biped_wbc_stepper", True)
 
-    #Get mocap data - get one set of data, then stop
-    import rclpy
-    from dg_optitrack.subscriber import MinimalSubscriber
-    rclpy.init()
-    mocap = MinimalSubscriber()
-    rclpy.spin_once(mocap, timeout_sec = 0.1)
-
     # Zero the initial position from the mocap signal.
-    pose = mocap.signal()
+    pose = np.array([0, 0, 0, 0, 0, 0, 1])
     print("base_posture_sin: " + str(pose))
     #need to convert np array to signal type for dg.plug to work
     base_posture_sin = constVector(pose, "")
@@ -567,7 +560,7 @@ if ("robot" in globals()) or ("robot" in locals()):
     )
     #
     # Create the base velocity using the IMU.
-    velocity = mocap.velocity()
+    velocity = np.array([0, 0, 0, 0, 0, 0])
     biped_velocity = constVector(velocity, "")
     base_velocity_sin = stack_two_vectors(
         selec_vector(biped_velocity, 0, 3),
