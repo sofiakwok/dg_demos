@@ -518,9 +518,9 @@ class BoltWBCStepper:
         self.robot.add_trace("muld0", "sout")
         self.robot.add_trace("mulp1", "sout")
         self.robot.add_trace("muld1", "sout")
-        #self.robot.add_ros_and_trace("vicon_entity", "biped_position")
-        #self.robot.add_ros_and_trace("vicon_entity", "biped_velocity_body")
-        #self.robot.add_ros_and_trace("vicon_entity", "biped_velocity_world")
+        self.robot.add_ros_and_trace("vicon_entity", "biped_position")
+        self.robot.add_ros_and_trace("vicon_entity", "biped_velocity_body")
+        self.robot.add_ros_and_trace("vicon_entity", "biped_velocity_world")
         # self.robot.add_trace("des", "sout")
 
     def plug_swing_foot_forces(self):
@@ -588,7 +588,7 @@ if "robot" in globals():
             base_posture_local_sin,
             base_velocity_sin,  # vicon.signal("biped_velocity_world")
         )
-        ctrl.trace()
+        #ctrl.trace()
 
     def go():
         ctrl.plug_to_robot(robot)
