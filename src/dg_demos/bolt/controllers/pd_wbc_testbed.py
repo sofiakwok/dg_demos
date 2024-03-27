@@ -30,13 +30,7 @@ from dg_tools.utils import (
     constDouble,
 )
 
-# from dg_tools.dynamic_graph.dg_tools_entities import (
-#     CreateWorldFrame,
-#     PoseRPYToPoseQuaternion,
-#     PoseQuaternionToPoseRPY,
-#     RPYToRotationMatrix,
-#     VectorIntegrator,
-# )
+from dg_tools.dynamic_graph.dg_tools_entities import CreateWorldFrame
 
 np.set_printoptions(suppress=True)
 
@@ -134,9 +128,9 @@ if "robot" in globals():
     print("created base velocity")
 
     # Set desired base rotation and velocity.
-    des_yaw = 0.0
-    ctrl.des_ori_pos_rpy_sin.value = np.array([0.0, 0.0, des_yaw])
-    ctrl.des_com_vel_sin.value = np.array([0.0, 0.0, 0.0])
+    # des_yaw = 0.0
+    # ctrl.des_ori_pos_rpy_sin.value = np.array([0.0, 0.0, des_yaw])
+    # ctrl.des_com_vel_sin.value = np.array([0.0, 0.0, 0.0])
 
     def go():
         ctrl.plug_to_robot(robot)
