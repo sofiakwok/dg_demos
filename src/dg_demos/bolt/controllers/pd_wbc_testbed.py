@@ -3,6 +3,9 @@ import numpy as np
 import dynamic_graph as dg
 from dynamic_graph.sot.core.control_pd import ControlPD
 from robot_properties_bolt.config import BoltConfig
+from mim_control.dynamic_graph.wbc_graph import WholeBodyController
+#this is somehow stopping the script from parsing
+#from reactive_planners.dynamic_graph.biped_stepper import BipedStepper
 
 from dynamic_graph.sot.tools import Oscillator
 
@@ -11,10 +14,31 @@ from dynamic_graph.sot.core.math_small_entities import (
     Add_of_double,
 )
 
-from dg_tools.utils import add_vec_vec
+from dynamic_graph.sot.core.math_small_entities import Component_of_vector
+
+from dg_tools.utils import (
+    constVector,
+    stack_two_vectors,
+    selec_vector,
+    add_vec_vec,
+    subtract_vec_vec,
+    multiply_mat_vec,
+    Stack_of_vector,
+    zero_vec,
+    mul_double_vec,
+    mul_vec_vec,
+    constDouble,
+)
+
+# from dg_tools.dynamic_graph.dg_tools_entities import (
+#     CreateWorldFrame,
+#     PoseRPYToPoseQuaternion,
+#     PoseQuaternionToPoseRPY,
+#     RPYToRotationMatrix,
+#     VectorIntegrator,
+# )
 
 np.set_printoptions(suppress=True)
-
 
 class BoltPDController(object):
     def __init__(self, prefix=""):
@@ -35,34 +59,6 @@ class BoltPDController(object):
             self.bolt_config.initial_velocity[6:]
         )
 
-        # HAA angles.
-        # self.desired_haa_pos_op = Multiply_double_vector(prefix + "haa_pos_op")
-        # dg.plug(self.sliders.A, self.desired_haa_pos_op.sin1)
-        # self.desired_haa_pos_op.sin2.value = np.array(
-        #     [1.0, 0.0, 0.0, -1.0, 0.0, 0.0]
-        # )
-
-        # HFE and KFE angles
-        # self.osc_height = Oscillator(prefix + "height_oscillator")
-        # self.osc_height.setTimePeriod(0.001)
-        # self.osc_height.omega.value = 2.0 * np.pi / 2.0
-        # self.osc_height.magnitude.value = 0.0
-        # self.osc_height.bias.value = 0.0
-        # self.height_add = Add_of_double(prefix + "add_slider_oscillator")
-        # dg.plug(self.sliders.B, self.height_add.sin(0))
-        # dg.plug(self.osc_height.sout, self.height_add.sin(1))
-        # self.desired_fe_pos_op = Multiply_double_vector(prefix + "fe_pos_op")
-        # dg.plug(self.height_add.sout, self.desired_fe_pos_op.sin1)
-        # self.desired_fe_pos_op.sin2.value = np.array(
-        #     [0.0, 1.0, -2.0, 0.0, 1.0, -2.0]
-        # )
-        # self.desired_joint_pos = add_vec_vec(
-        #     self.desired_haa_pos_op.sout, self.desired_fe_pos_op.sout
-        # )
-
-        #self.joint_pos = Multiply_double_vector(prefix + "joint_angles")
-        #dg.plug(self.height_add.sout, self.desired_joint_angles.sin1)
-        #self.joint_pos.sin2.value = np.array(self.bolt_config.initial_configuration[7:])
         self.joint_pos = np.array(self.bolt_config.initial_configuration[7:])
 
         # Specify the desired joint positions.
@@ -72,10 +68,6 @@ class BoltPDController(object):
         #self.slider_values = self.sliders
 
         print("done initializing pd controller")
-
-    # def set_sliders_desired_position(self):
-    #     # Specify the desired joint positions.
-    #     dg.plug(self.desired_joint_pos, self.pd.desired_position)
 
     def set_desired_position(self, desired_pos):
         self.pd.desired_position.value = desired_pos
@@ -93,12 +85,6 @@ class BoltPDController(object):
         joint_velocities,
         ctrl_joint_torques,
     ):
-        # print("plugging")
-        # Plug the sliders.
-        # self.sliders.plug_slider_signal(slider_positions)
-        # # # Offset the sliders by the current value.
-        # self.sliders.set_offset_values(-slider_positions.value)
-        # plug the desired quantity signals in the pd controller.
         dg.plug(joint_positions, self.pd.position)
         dg.plug(joint_velocities, self.pd.velocity)
         dg.plug(self.pd.control, ctrl_joint_torques)
@@ -107,13 +93,50 @@ class BoltPDController(object):
         # Adding logging traces.
         robot.add_trace(self.pd.name, "desired_position")
 
-
 def get_controller():
     return BoltPDController(prefix="Bolt_")
 
 
 if "robot" in globals():
     ctrl = get_controller()
+    print("controller set up")
+
+    # Zero the initial position from the mocap signal.
+    pose = np.array([0, 0, 0, 0, 0, 0, 1])
+    #need to convert np array to signal type for dg.plug to work
+    base_posture_sin = constVector(pose, "")
+    print("converting base posture to signal")
+    op = CreateWorldFrame("wf")
+    print("creating world frame")
+    dg.plug(base_posture_sin, op.frame_sin)
+    op.set_which_dofs(np.array([1.0, 1.0, 0.0, 0.0, 0.0, 0.0]))
+
+    base_posture_local_sin = stack_two_vectors(
+        selec_vector(
+            subtract_vec_vec(base_posture_sin, op.world_frame_sout), 0, 3
+        ),
+        selec_vector(base_posture_sin, 3, 7),
+        3,
+        4,
+    )
+    print("created base posture")
+    #
+    # Create the base velocity using the IMU.
+    velocity = np.array([0, 0, 0, 0, 0, 0])
+    biped_velocity = constVector(velocity, "")
+    base_velocity_sin = biped_velocity
+    # base_velocity_sin = stack_two_vectors(
+    #     selec_vector(biped_velocity, 0, 3),
+    #     robot.device.base_gyroscope,
+    #     3,
+    #     3,
+    # )
+    print("created base velocity")
+
+    # Set desired base rotation and velocity.
+    des_yaw = 0.0
+    ctrl.des_ori_pos_rpy_sin.value = np.array([0.0, 0.0, des_yaw])
+    ctrl.des_com_vel_sin.value = np.array([0.0, 0.0, 0.0])
 
     def go():
         ctrl.plug_to_robot(robot)

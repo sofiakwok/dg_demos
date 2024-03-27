@@ -11,6 +11,7 @@ import numpy as np
 #np.set_printoptions(suppress=True, precision=3)
 #import pinocchio as pin
 import dynamic_graph as dg
+from dynamic_graph.sot.core.control_pd import ControlPD
 
 from robot_properties_bolt.config import BoltConfig
 from mim_control.dynamic_graph.wbc_graph import WholeBodyController
@@ -35,13 +36,13 @@ from dynamic_graph.sot.core.math_small_entities import Component_of_vector
 
 from dynamic_graph.sot.core.math_small_entities import Add_of_double
 
-from dg_tools.dynamic_graph.dg_tools_entities import (
-    CreateWorldFrame,
-    PoseRPYToPoseQuaternion,
-    PoseQuaternionToPoseRPY,
-    RPYToRotationMatrix,
-    VectorIntegrator,
-)
+#from dg_tools.dynamic_graph.dg_tools_entities import (
+#    CreateWorldFrame,
+#    PoseRPYToPoseQuaternion,
+#    PoseQuaternionToPoseRPY,
+#    RPYToRotationMatrix,
+#    VectorIntegrator,
+#)
 
 class BoltWBCStepper:
     def __init__(self, prefix, friction_coeff, is_real_robot):
@@ -476,22 +477,7 @@ class BoltWBCStepper:
         self.wbc.w_com_ff_sin.value = 1 * np.array(
             [0.0, 0.0, 9.81 * 1.1, 0.0, 0.0, 0.0]
         )
-        # if self.is_real_robot:
-        #     self.wbc.kc_sin = mul_vec_vec(constVector(kf * np.array([0., 0., 0.])), self.slider_A,"")
-        #     self.wbc.dc_sin = mul_vec_vec(constVector(kf * np.array([0., 0., 0.])), self.slider_B,"")
-        #     self.wbc.kb_sin = mul_vec_vec(constVector(kf * np.array([0., 0., 0.])), self.slider_C,"")
-        #     self.wbc.db_sin = mul_vec_vec(constVector(kf * np.array([0., 0., 0.])), self.slider_D,"")
-        # else:
-        # self.wbc.kc_sin = mul_vec_vec(constVector(kf * np.array([0., 0., 0.])), self.slider_A,"")
-        # self.wbc.dc_sin = mul_vec_vec(constVector(kf * np.array([0., 0., 0.])), self.slider_B,"")
-        # self.wbc.kb_sin = mul_vec_vec(constVector(kf * np.array([0., 0., 0.])), self.slider_C,"")
-        # self.wbc.db_sin = mul_vec_vec(constVector(kf * np.array([0., 0., 0.])), self.slider_D,"")
-        # dg.plug(self.kf_eff.sout, self.wbc.gain_feed_forward_force_sin)
-        # dg.plug(stack_two_vectors(constVector(np.array([0.0, 0.0])), self.sliders.A_vec, 2, 1), self.wbc.kc_sin)
-        # dg.plug(stack_two_vectors(constVector(np.array([0.0, 0.0])), self.sliders.B_vec, 2, 1), self.wbc.dc_sin)
-        # dg.plug(stack_two_vectors(stack_two_vectors(constVector(np.array([0.0])), self.sliders.C_vec, 1, 1), self.sliders.C_vec, 2, 3), self.wbc.kb_sin)
-        # dg.plug(stack_two_vectors(stack_two_vectors(constVector(np.array([0.0])), self.sliders.D_vec, 1, 1), self.sliders.D_vec, 2, 3), self.wbc.db_sin)
-
+    
     def trace(self):
         self.wbc.trace()
 
@@ -530,23 +516,22 @@ class BoltWBCStepper:
 
 
 def get_controller(prefix="biped_wbc_stepper", is_real_robot=True):
+    #return BoltPDController(prefix="Bolt_")
     return BoltWBCStepper(prefix, 0.6, is_real_robot)
 
-
 if ("robot" in globals()) or ("robot" in locals()):
-    from dg_demos.bolt.controllers.pd_controller import (
-        get_controller as get_pd_controller,
-    )
 
     # Setup the main controller.
     ctrl = get_controller("biped_wbc_stepper", True)
+    print("controller initialized")
 
     # Zero the initial position from the mocap signal.
     pose = np.array([0, 0, 0, 0, 0, 0, 1])
-    print("base_posture_sin: " + str(pose))
     #need to convert np array to signal type for dg.plug to work
     base_posture_sin = constVector(pose, "")
+    print("converted base posture to signal")
     op = CreateWorldFrame("wf")
+    print("creating world frame")
     dg.plug(base_posture_sin, op.frame_sin)
     op.set_which_dofs(np.array([1.0, 1.0, 0.0, 0.0, 0.0, 0.0]))
 
@@ -562,26 +547,28 @@ if ("robot" in globals()) or ("robot" in locals()):
     # Create the base velocity using the IMU.
     velocity = np.array([0, 0, 0, 0, 0, 0])
     biped_velocity = constVector(velocity, "")
-    base_velocity_sin = stack_two_vectors(
-        selec_vector(biped_velocity, 0, 3),
-        robot.device.base_gyroscope,
-        3,
-        3,
-    )
+    base_velocity_sin = biped_velocity
+    # base_velocity_sin = stack_two_vectors(
+    #     selec_vector(biped_velocity, 0, 3),
+    #     robot.device.base_gyroscope,
+    #     3,
+    #     3,
+    # )
 
     # Set desired base rotation and velocity.
     des_yaw = 0.0
     ctrl.des_ori_pos_rpy_sin.value = np.array([0.0, 0.0, des_yaw])
     ctrl.des_com_vel_sin.value = np.array([0.0, 0.0, 0.0])
 
-    # def go_pd():
-    #     pd_ctrl.plug_to_robot(robot)
-
     def go_poly():
         ctrl.set_polynomial_end_effector_trajectory()
 
     def go_swing_foot_forces():
         ctrl.plug_swing_foot_forces()
+
+    def go_pd():
+        ctrl.plug_to_robot(robot)
+        print("plugged robot")
 
     def go_stepper():
         op.update()
