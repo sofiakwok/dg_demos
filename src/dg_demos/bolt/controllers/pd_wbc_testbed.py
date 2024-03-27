@@ -8,7 +8,7 @@ from mim_control.dynamic_graph.wbc_graph import WholeBodyController
 #from reactive_planners.dynamic_graph.biped_stepper import BipedStepper
 
 from dynamic_graph.sot.tools import Oscillator
-
+import dynamic_graph.sot.dynamic_pinocchio as dp
 from dynamic_graph.sot.core.math_small_entities import (
     Multiply_double_vector,
     Add_of_double,
@@ -28,6 +28,7 @@ from dg_tools.utils import (
     mul_double_vec,
     mul_vec_vec,
     constDouble,
+    basePoseQuat2PoseRPY,
 )
 
 from dg_tools.dynamic_graph.dg_tools_entities import (
@@ -39,63 +40,16 @@ from reactive_planners.dynamic_graph.walking import DcmReactiveStepper
 
 np.set_printoptions(suppress=True)
 
-class BoltPDController(object):
-    def __init__(self, prefix=""):
-        self.prefix = prefix
-        # self.sliders = Sliders(4, self.prefix)
-        # self.sliders.set_scale_values([1.5, 2.0, 1.0, 1.0])
-
-        self.bolt_config = BoltConfig()
-
-        # Setup the control graph to track the desired joint positions.
-        self.pd = pd = ControlPD("PDController")
-
-        # setup the gains
-        pd.Kp.value = np.array(6 * [3.0])
-        pd.Kd.value = np.array(6 * [0.05])
-
-        pd.desired_velocity.value = np.array(
-            self.bolt_config.initial_velocity[6:]
-        )
-
-        self.joint_pos = np.array(self.bolt_config.initial_configuration[7:])
-
-        # Specify the desired joint positions.
-        pd.desired_position.value = self.joint_pos
-        #dg.plug(self.joint_pos.sout, self.pd.desired_position)
-
-        #self.slider_values = self.sliders
-
-        print("done initializing pd controller")
-
-    def set_desired_position(self, desired_pos):
-        self.pd.desired_position.value = desired_pos
-
-    def plug_to_robot(self, robot):
-        self.plug(
-            robot.device.joint_positions,
-            robot.device.joint_velocities,
-            robot.device.ctrl_joint_torques,
-        )
-
-    def plug(
-        self,
-        joint_positions,
-        joint_velocities,
-        ctrl_joint_torques,
-    ):
-        dg.plug(joint_positions, self.pd.position)
-        dg.plug(joint_velocities, self.pd.velocity)
-        dg.plug(self.pd.control, ctrl_joint_torques)
-
-    def record_data(self, robot):
-        # Adding logging traces.
-        robot.add_trace(self.pd.name, "desired_position")
 
 class BoltWBCStepper:
     def __init__(self, prefix, friction_coeff, is_real_robot):
         pin_robot = BoltConfig.buildRobotWrapper()
         end_effector_names = BoltConfig.end_effector_names
+
+        self.nv = pin_robot.model.nv
+        self.dg_robot = dp.DynamicPinocchio(prefix + "_pinocchio")
+        self.dg_robot.setModel(pin_robot.model)
+        self.dg_robot.setData(pin_robot.data)
 
         self.is_real_robot = is_real_robot
 
@@ -393,8 +347,27 @@ class BoltWBCStepper:
     def plug(self, robot, base_position, base_velocity):
         self.base_position = base_position
         self.robot = robot
-        #self.sliders.plug_slider_signal(robot.device.slider_positions)
-        self.stepper.plug(robot, base_position, base_velocity)
+        base_pose_rpy = basePoseQuat2PoseRPY(base_position)
+        position = stack_two_vectors(
+            base_pose_rpy, robot.device.joint_positions, 6, self.nv - 6
+        )
+        velocity = stack_two_vectors(
+            base_velocity, robot.device.joint_velocities, 6, self.nv - 6
+        )
+
+        dg.plug(position, self.dg_robot.signal("position"))
+        dg.plug(velocity, self.dg_robot.signal("velocity"))
+        self.dg_robot.signal("acceleration").value = np.array(
+            self.nv
+            * [
+                0.0,
+            ]
+        )
+
+        ###
+        # Plug the stepper base position.
+        dg.plug(base_position, self.stepper.xyzquat_base_sin)
+        
         self.wbc.plug(robot, base_position, base_velocity)
         self.plug_swing_foot_forces()
 
@@ -545,9 +518,9 @@ class BoltWBCStepper:
         self.robot.add_trace("muld0", "sout")
         self.robot.add_trace("mulp1", "sout")
         self.robot.add_trace("muld1", "sout")
-        self.robot.add_ros_and_trace("vicon_entity", "biped_position")
-        self.robot.add_ros_and_trace("vicon_entity", "biped_velocity_body")
-        self.robot.add_ros_and_trace("vicon_entity", "biped_velocity_world")
+        #self.robot.add_ros_and_trace("vicon_entity", "biped_position")
+        #self.robot.add_ros_and_trace("vicon_entity", "biped_velocity_body")
+        #self.robot.add_ros_and_trace("vicon_entity", "biped_velocity_world")
         # self.robot.add_trace("des", "sout")
 
     def plug_swing_foot_forces(self):
@@ -572,15 +545,12 @@ def get_controller(prefix="biped_wbc_stepper", is_real_robot=True):
 if "robot" in globals():
     #ctrl = get_controller()
     ctrl = get_controller("biped_wbc_stepper", True)
-    print("controller set up")
 
     # Zero the initial position from the mocap signal.
     pose = np.array([0, 0, 0, 0, 0, 0, 1])
     #need to convert np array to signal type for dg.plug to work
     base_posture_sin = constVector(pose, "")
-    print("converting base posture to signal")
     op = CreateWorldFrame("wf")
-    print("creating world frame")
     dg.plug(base_posture_sin, op.frame_sin)
     op.set_which_dofs(np.array([1.0, 1.0, 0.0, 0.0, 0.0, 0.0]))
 
@@ -592,7 +562,6 @@ if "robot" in globals():
         3,
         4,
     )
-    print("created base posture")
     #
     # Create the base velocity using the IMU.
     velocity = np.array([0, 0, 0, 0, 0, 0])
@@ -604,12 +573,11 @@ if "robot" in globals():
     #     3,
     #     3,
     # )
-    print("created base velocity")
 
     # Set desired base rotation and velocity.
-    # des_yaw = 0.0
-    # ctrl.des_ori_pos_rpy_sin.value = np.array([0.0, 0.0, des_yaw])
-    # ctrl.des_com_vel_sin.value = np.array([0.0, 0.0, 0.0])
+    des_yaw = 0.0
+    ctrl.des_ori_pos_rpy_sin.value = np.array([0.0, 0.0, des_yaw])
+    ctrl.des_com_vel_sin.value = np.array([0.0, 0.0, 0.0])
 
     def go_stepper():
         op.update()
@@ -624,10 +592,9 @@ if "robot" in globals():
 
     def go():
         ctrl.plug_to_robot(robot)
-        print("plugged robot")
 
     print("#####")
     print("")
-    print("Please execute `go()` function to start the controller.")
+    print("Please execute `go_stepper()` function to start the controller.")
     print("")
     print("#####")
