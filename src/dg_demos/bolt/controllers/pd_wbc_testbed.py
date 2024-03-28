@@ -12,6 +12,7 @@ import dynamic_graph.sot.dynamic_pinocchio as dp
 from dynamic_graph.sot.core.math_small_entities import (
     Multiply_double_vector,
     Add_of_double,
+    Selec_of_matrix,
 )
 
 from dynamic_graph.sot.core.math_small_entities import Component_of_vector
@@ -29,6 +30,7 @@ from dg_tools.utils import (
     mul_vec_vec,
     constDouble,
     basePoseQuat2PoseRPY,
+    hom2pos,
 )
 
 from dg_tools.dynamic_graph.dg_tools_entities import (
@@ -51,6 +53,9 @@ class BoltWBCStepper:
         self.dg_robot.setModel(pin_robot.model)
         self.dg_robot.setData(pin_robot.data)
 
+        self.sig_eff_pos = []
+        self.sig_eff_vel = []
+
         self.is_real_robot = is_real_robot
 
         # Create the whole body controller.
@@ -66,11 +71,6 @@ class BoltWBCStepper:
         ###
         # Specify gains for the controller.
 
-        # For the centroidal controllers com PD.
-        # self.kf_eff = constDouble(1.)
-        # sig = add_doub_doub(1, 0, "1")
-        # sig.sin1.value = 1.
-        # sig.sin2.value = 0.0
         self.kf_eff = 0.0
         if self.is_real_robot:
             x = 2
@@ -117,9 +117,59 @@ class BoltWBCStepper:
 
         self.wbc.cnt_array_sin.value = np.array([1.0, 1.0])
 
+
+        # Create the objects of interests from pinocchio.
+        self.com = self.dg_robot.signal("com")
+        self.vcom = multiply_mat_vec(
+            self.dg_robot.signal("Jcom"), self.dg_robot.signal("velocity")
+        )
+
+        for endeff_name in end_effector_names:
+            self.dg_robot.createPosition("pos_" + endeff_name, endeff_name)
+            self.dg_robot.createJacobianEndEffWorld(
+                "jac_" + endeff_name, endeff_name
+            )
+
+            # Store the endeffector position signal.
+            self.sig_eff_pos.append(
+                hom2pos(self.dg_robot.signal("pos_" + endeff_name))
+            )
+
+            # Compute the endeffector velocity signal.
+            sel_linear = Selec_of_matrix(prefix + "_pinocchio_" + endeff_name)
+            sel_linear.selecRows(0, 3)
+            sel_linear.selecCols(0, self.nv + 6)
+            dg.plug(self.dg_robot.signal("jac_" + endeff_name), sel_linear.sin)
+
+            self.sig_eff_vel.append(
+                multiply_mat_vec(
+                    sel_linear.sout, self.dg_robot.signal("velocity")
+                )
+            )
+
         ###
         # Create the stepper.
         self.stepper = stepper = DcmReactiveStepper()
+
+        # Setup the pinocchio input quantities for the stepper.
+        dg.plug(self.com, self.stepper.com_position_sin)
+        dg.plug(self.vcom, self.stepper.com_velocity_sin)
+        dg.plug(
+            self.sig_eff_pos[0],
+            self.stepper.current_left_foot_position_sin,
+        )
+        dg.plug(
+            self.sig_eff_vel[0],
+            self.stepper.current_left_foot_velocity_sin,
+        )
+        dg.plug(
+            self.sig_eff_pos[1],
+            self.stepper.current_right_foot_position_sin,
+        )
+        dg.plug(
+            self.sig_eff_vel[1],
+            self.stepper.current_right_foot_velocity_sin,
+        )
 
         # Impedance controllers.
         for i, imp in enumerate(wbc.imps):
@@ -323,8 +373,8 @@ class BoltWBCStepper:
         # Let the biped step in place for now.
         self.des_com_vel_sin = self.stepper.desired_com_velocity_sin
         self.des_com_vel_sin.value = v_des_list
-        # self.stepper.base_yaw_sin.value = np.array([0.0, 0.0, 0.0])
-        # self.stepper.is_closed_loop_sin.value = 0.
+        self.stepper.base_yaw_sin.value = np.array([0.0, 0.0, 0.0])
+        #self.stepper.is_closed_loop_sin.value = 0.
 
         self.set_steptime_nominal(0.22)
         self.set_dynamical_end_effector_trajectory()
@@ -372,7 +422,9 @@ class BoltWBCStepper:
         self.plug_swing_foot_forces()
 
     def plug_base_as_com(self, base_position, base_velocity_world):
+        print("plugging base as com")
         self.wbc.plug_base_as_com(base_position, base_velocity_world)
+        print("setting desired com pos value")
         self.wbc.des_com_pos_sin.value = np.array(
             [0.0, 0.0, self.com_height + self.base_com_offset]
         )
@@ -394,10 +446,6 @@ class BoltWBCStepper:
             self.wbc.dc_sin.value = self.kf_eff * np.array([0.0, 0.0, 0.1])
             self.wbc.kb_sin.value = self.kf_eff * np.array([3.8, 3.2, 0.0])
             self.wbc.db_sin.value = self.kf_eff * np.array([0.2, 0.2, 0.0])
-            # dg.plug(stack_two_vectors(constVector(np.array([0.0, 0.0])), self.sliders.A_vec, 2, 1), self.wbc.kc_sin)
-            # dg.plug(stack_two_vectors(constVector(np.array([0.0, 0.0])), self.sliders.B_vec, 2, 1), self.wbc.dc_sin)
-            # dg.plug(stack_two_vectors(stack_two_vectors(self.sliders.C_vec, self.sliders.C_vec, 1, 1), constVector(np.array([0.0])), 2, 1), self.wbc.kb_sin)
-            # dg.plug(stack_two_vectors(stack_two_vectors(self.sliders.D_vec, self.sliders.D_vec, 1, 1), constVector(np.array([0.0])), 2, 1), self.wbc.db_sin)
         else:
             self.wbc.kc_sin.value = self.kf_eff * np.array([0.0, 0.0, 100.0])
             self.wbc.dc_sin.value = self.kf_eff * np.array([0.0, 0.0, 10.0])
@@ -533,10 +581,6 @@ class BoltWBCStepper:
                 feedforward,
             )
 
-
-# def get_controller():
-#     return BoltPDController(prefix="Bolt_")
-
 def get_controller(prefix="biped_wbc_stepper", is_real_robot=True):
     #return BoltPDController(prefix="Bolt_")
     return BoltWBCStepper(prefix, 0.6, is_real_robot)
@@ -582,12 +626,12 @@ if "robot" in globals():
     def go_stepper():
         op.update()
         ctrl.plug(robot, base_posture_local_sin, base_velocity_sin)
-
         # Use base as com position gives more stable result.
         ctrl.plug_base_as_com(
             base_posture_local_sin,
             base_velocity_sin,  # vicon.signal("biped_velocity_world")
         )
+        print("done plugging")
         #ctrl.trace()
 
     def go():
