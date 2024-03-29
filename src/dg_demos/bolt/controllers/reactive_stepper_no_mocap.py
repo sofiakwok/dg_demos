@@ -64,7 +64,7 @@ class BoltWBCStepper:
         # sig = add_doub_doub(1, 0, "1")
         # sig.sin1.value = 1.
         # sig.sin2.value = 0.0
-        self.kf_eff = 0.05
+        self.kf_eff = 0.15
         if self.is_real_robot:
             x = 2
             self.wbc.kc_sin.value = self.kf_eff * np.array([0.0, 0.0, 60.0])
@@ -514,15 +514,12 @@ if ("robot" in globals()) or ("robot" in locals()):
 
     # Setup the main controller.
     ctrl = get_controller("biped_wbc_stepper", True)
-    print("controller initialized")
 
     # Zero the initial position from the mocap signal.
     pose = np.array([0, 0, 0.38487417 - 0.05, 0, 0, 1, 0])
     #need to convert np array to signal type for dg.plug to work
     base_posture_sin = constVector(pose, "")
-    print("converted base posture to signal")
     op = CreateWorldFrame("wf")
-    print("creating world frame")
     dg.plug(base_posture_sin, op.frame_sin)
     op.set_which_dofs(np.array([1.0, 1.0, 0.0, 0.0, 0.0, 0.0]))
 
