@@ -16,8 +16,6 @@ from dynamic_graph.sot.core.control_pd import ControlPD
 from robot_properties_bolt.config import BoltConfig
 from mim_control.dynamic_graph.wbc_graph import WholeBodyController
 from reactive_planners.dynamic_graph.biped_stepper import BipedStepper
-from reactive_planners_cpp import DcmReactiveStepper
-#from dg_tools.sliders import Sliders
 
 from dg_tools.utils import (
     constVector,
@@ -36,13 +34,10 @@ from dynamic_graph.sot.core.math_small_entities import Component_of_vector
 
 from dynamic_graph.sot.core.math_small_entities import Add_of_double
 
-#from dg_tools.dynamic_graph.dg_tools_entities import (
-#    CreateWorldFrame,
-#    PoseRPYToPoseQuaternion,
-#    PoseQuaternionToPoseRPY,
-#    RPYToRotationMatrix,
-#    VectorIntegrator,
-#)
+from dg_tools.dynamic_graph.dg_tools_entities import (
+    CreateWorldFrame,
+    PoseRPYToPoseQuaternion,
+)
 
 class BoltWBCStepper:
     def __init__(self, prefix, friction_coeff, is_real_robot):
@@ -69,17 +64,13 @@ class BoltWBCStepper:
         # sig = add_doub_doub(1, 0, "1")
         # sig.sin1.value = 1.
         # sig.sin2.value = 0.0
-        self.kf_eff = 0.0
+        self.kf_eff = 0.05
         if self.is_real_robot:
             x = 2
             self.wbc.kc_sin.value = self.kf_eff * np.array([0.0, 0.0, 60.0])
             self.wbc.dc_sin.value = self.kf_eff * np.array([0.0, 0.0, 0.1])
             self.wbc.kb_sin.value = self.kf_eff * np.array([3.8, 3.2, 0.0])
             self.wbc.db_sin.value = self.kf_eff * np.array([0.2, 0.2, 0.0])
-            # dg.plug(stack_two_vectors(constVector(np.array([0.0, 0.0])), self.sliders.A_vec, 2, 1), self.wbc.kc_sin)
-            # dg.plug(stack_two_vectors(constVector(np.array([0.0, 0.0])), self.sliders.B_vec, 2, 1), self.wbc.dc_sin)
-            # dg.plug(stack_two_vectors(stack_two_vectors(self.sliders.C_vec, self.sliders.C_vec, 1, 1), constVector(np.array([0.0])), 2, 1), self.wbc.kb_sin)
-            # dg.plug(stack_two_vectors(stack_two_vectors(self.sliders.D_vec, self.sliders.D_vec, 1, 1), constVector(np.array([0.0])), 2, 1), self.wbc.db_sin)
         else:
             self.wbc.kc_sin.value = self.kf_eff * np.array([0.0, 0.0, 100.0])
             self.wbc.dc_sin.value = self.kf_eff * np.array([0.0, 0.0, 10.0])
@@ -323,7 +314,7 @@ class BoltWBCStepper:
         # Let the biped step in place for now.
         self.des_com_vel_sin = self.stepper.stepper.desired_com_velocity_sin
         self.des_com_vel_sin.value = v_des_list
-        # self.stepper.stepper.base_yaw_sin.value = np.array([0.0, 0.0, 0.0])
+        self.stepper.stepper.base_yaw_sin.value = np.array([0.0, 0.0, 0.0])
         # self.stepper.stepper.is_closed_loop_sin.value = 0.
 
         self.set_steptime_nominal(0.22)
@@ -526,7 +517,7 @@ if ("robot" in globals()) or ("robot" in locals()):
     print("controller initialized")
 
     # Zero the initial position from the mocap signal.
-    pose = np.array([0, 0, 0, 0, 0, 0, 1])
+    pose = np.array([0, 0, 0.38487417 - 0.05, 0, 0, 1, 0])
     #need to convert np array to signal type for dg.plug to work
     base_posture_sin = constVector(pose, "")
     print("converted base posture to signal")
@@ -579,7 +570,7 @@ if ("robot" in globals()) or ("robot" in locals()):
             base_posture_local_sin,
             base_velocity_sin,  # vicon.signal("biped_velocity_world")
         )
-        ctrl.trace()
+        #ctrl.trace()
 
     print("I'm ready to get your command :)")
     print("call go_stepper() to start controller")
