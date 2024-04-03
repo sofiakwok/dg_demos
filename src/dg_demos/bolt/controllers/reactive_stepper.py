@@ -11,12 +11,11 @@ import numpy as np
 #np.set_printoptions(suppress=True, precision=3)
 #import pinocchio as pin
 import dynamic_graph as dg
+from dynamic_graph.sot.core.control_pd import ControlPD
 
 from robot_properties_bolt.config import BoltConfig
 from mim_control.dynamic_graph.wbc_graph import WholeBodyController
 from reactive_planners.dynamic_graph.biped_stepper import BipedStepper
-from reactive_planners_cpp import DcmReactiveStepper
-#from dg_tools.sliders import Sliders
 
 from dg_tools.utils import (
     constVector,
@@ -38,9 +37,6 @@ from dynamic_graph.sot.core.math_small_entities import Add_of_double
 from dg_tools.dynamic_graph.dg_tools_entities import (
     CreateWorldFrame,
     PoseRPYToPoseQuaternion,
-    PoseQuaternionToPoseRPY,
-    RPYToRotationMatrix,
-    VectorIntegrator,
 )
 
 class BoltWBCStepper:
@@ -62,23 +58,13 @@ class BoltWBCStepper:
 
         ###
         # Specify gains for the controller.
-
-        # For the centroidal controllers com PD.
-        # self.kf_eff = constDouble(1.)
-        # sig = add_doub_doub(1, 0, "1")
-        # sig.sin1.value = 1.
-        # sig.sin2.value = 0.0
-        self.kf_eff = 0.0
+        self.kf_eff = 0.1
         if self.is_real_robot:
             x = 2
             self.wbc.kc_sin.value = self.kf_eff * np.array([0.0, 0.0, 60.0])
             self.wbc.dc_sin.value = self.kf_eff * np.array([0.0, 0.0, 0.1])
             self.wbc.kb_sin.value = self.kf_eff * np.array([3.8, 3.2, 0.0])
             self.wbc.db_sin.value = self.kf_eff * np.array([0.2, 0.2, 0.0])
-            # dg.plug(stack_two_vectors(constVector(np.array([0.0, 0.0])), self.sliders.A_vec, 2, 1), self.wbc.kc_sin)
-            # dg.plug(stack_two_vectors(constVector(np.array([0.0, 0.0])), self.sliders.B_vec, 2, 1), self.wbc.dc_sin)
-            # dg.plug(stack_two_vectors(stack_two_vectors(self.sliders.C_vec, self.sliders.C_vec, 1, 1), constVector(np.array([0.0])), 2, 1), self.wbc.kb_sin)
-            # dg.plug(stack_two_vectors(stack_two_vectors(self.sliders.D_vec, self.sliders.D_vec, 1, 1), constVector(np.array([0.0])), 2, 1), self.wbc.db_sin)
         else:
             self.wbc.kc_sin.value = self.kf_eff * np.array([0.0, 0.0, 100.0])
             self.wbc.dc_sin.value = self.kf_eff * np.array([0.0, 0.0, 10.0])
@@ -322,7 +308,7 @@ class BoltWBCStepper:
         # Let the biped step in place for now.
         self.des_com_vel_sin = self.stepper.stepper.desired_com_velocity_sin
         self.des_com_vel_sin.value = v_des_list
-        # self.stepper.stepper.base_yaw_sin.value = np.array([0.0, 0.0, 0.0])
+        self.stepper.stepper.base_yaw_sin.value = np.array([0.0, 0.0, 0.0])
         # self.stepper.stepper.is_closed_loop_sin.value = 0.
 
         self.set_steptime_nominal(0.22)
@@ -356,142 +342,7 @@ class BoltWBCStepper:
         self.wbc.des_com_pos_sin.value = np.array(
             [0.0, 0.0, self.com_height + self.base_com_offset]
         )
-
-    # def set_eff_pd(self, p, p_z, d):
-    #     for i, imp in enumerate(self.wbc.imps):
-    #         imp.gain_proportional_sin.value = np.array(
-    #             [p, p, p_z, 0.0, 0.0, 0.0]
-    #         )
-    #         imp.gain_derivative_sin.value = np.array(
-    #             [d, d, d, 0.0, 0.0, 0.0]
-    #         )
-
-    def set_kf(self, kf):
-        self.kf_eff = kf
-        if self.is_real_robot:
-            x = 2
-            self.wbc.kc_sin.value = self.kf_eff * np.array([0.0, 0.0, 60.0])
-            self.wbc.dc_sin.value = self.kf_eff * np.array([0.0, 0.0, 0.1])
-            self.wbc.kb_sin.value = self.kf_eff * np.array([3.8, 3.2, 0.0])
-            self.wbc.db_sin.value = self.kf_eff * np.array([0.2, 0.2, 0.0])
-            # dg.plug(stack_two_vectors(constVector(np.array([0.0, 0.0])), self.sliders.A_vec, 2, 1), self.wbc.kc_sin)
-            # dg.plug(stack_two_vectors(constVector(np.array([0.0, 0.0])), self.sliders.B_vec, 2, 1), self.wbc.dc_sin)
-            # dg.plug(stack_two_vectors(stack_two_vectors(self.sliders.C_vec, self.sliders.C_vec, 1, 1), constVector(np.array([0.0])), 2, 1), self.wbc.kb_sin)
-            # dg.plug(stack_two_vectors(stack_two_vectors(self.sliders.D_vec, self.sliders.D_vec, 1, 1), constVector(np.array([0.0])), 2, 1), self.wbc.db_sin)
-        else:
-            self.wbc.kc_sin.value = self.kf_eff * np.array([0.0, 0.0, 100.0])
-            self.wbc.dc_sin.value = self.kf_eff * np.array([0.0, 0.0, 10.0])
-            self.wbc.kb_sin.value = self.kf_eff * np.array([100, 100, 0.0])
-            self.wbc.db_sin.value = self.kf_eff * np.array([0.1, 0.1, 0.0])
-        for i, imp in enumerate(self.wbc.imps):
-            if self.is_real_robot:
-                contact = Component_of_vector("imp" + str(i))
-                contact.setIndex(not i)
-                dg.plug(
-                    constVector(
-                        np.array(
-                            [
-                                1.0,
-                                1.0,
-                            ]
-                        ),
-                        "",
-                    ),
-                    contact.sin,
-                )
-                # dg.plug(self.stepper.stepper.contact_array_sout, contact.sin)
-                contact = contact.sout
-                dg.plug(
-                    mul_double_vec(
-                        contact,
-                        constVector(
-                            self.kf_eff
-                            * np.array([40.0, 40.0, 97.0, 0.0, 0.0, 0.0])
-                        ),
-                        "mulp" + str(i),
-                    ),
-                    imp.gain_proportional_sin,
-                )
-                # imp.gain_proportional_sin.value = self.kf_eff * np.array(
-                #     [40.0, 40.0, 97.0, 0.0, 0.0, 0.0]
-                # )
-                dg.plug(
-                    mul_double_vec(
-                        contact,
-                        constVector(
-                            self.kf_eff
-                            * np.array([0.26, 0.23, 0.16, 0.0, 0.0, 0.0])
-                        ),
-                        "muld" + str(i),
-                    ),
-                    imp.gain_derivative_sin,
-                )
-                # imp.gain_derivative_sin.value = self.kf_eff * np.array(
-                #     [0.26, 0.23, 0.16, 0.0, 0.0, 0.0]
-                # )
-            else:
-                contact = Component_of_vector("imp" + str(i))
-                contact.setIndex(not i)
-                dg.plug(
-                    constVector(
-                        np.array(
-                            [
-                                1.0,
-                                1.0,
-                            ]
-                        ),
-                        "",
-                    ),
-                    contact.sin,
-                )
-                # dg.plug(self.stepper.stepper.contact_array_sout, contact.sin)
-                contact = contact.sout
-                dg.plug(
-                    mul_double_vec(
-                        contact,
-                        constVector(
-                            self.kf_eff
-                            * np.array([150.0, 150.0, 150.0, 0.0, 0.0, 0.0])
-                        ),
-                        "mulp" + str(i),
-                    ),
-                    imp.gain_proportional_sin,
-                )
-                dg.plug(
-                    mul_double_vec(
-                        contact,
-                        constVector(
-                            self.kf_eff * np.array([5, 5, 5, 0.0, 0.0, 0.0])
-                        ),
-                        "muld" + str(i),
-                    ),
-                    imp.gain_derivative_sin,
-                )
-                # imp.gain_proportional_sin.value = self.kf_eff * np.array(
-                #     [150.0, 150.0, 150.0, 0.0, 0.0, 0.0]
-                # )
-                # imp.gain_derivative_sin.value = self.kf_eff * np.array(
-                #     [5, 5, 5, 0.0, 0.0, 0.0]
-                # )
-        self.wbc.w_com_ff_sin.value = 1 * np.array(
-            [0.0, 0.0, 9.81 * 1.1, 0.0, 0.0, 0.0]
-        )
-        # if self.is_real_robot:
-        #     self.wbc.kc_sin = mul_vec_vec(constVector(kf * np.array([0., 0., 0.])), self.slider_A,"")
-        #     self.wbc.dc_sin = mul_vec_vec(constVector(kf * np.array([0., 0., 0.])), self.slider_B,"")
-        #     self.wbc.kb_sin = mul_vec_vec(constVector(kf * np.array([0., 0., 0.])), self.slider_C,"")
-        #     self.wbc.db_sin = mul_vec_vec(constVector(kf * np.array([0., 0., 0.])), self.slider_D,"")
-        # else:
-        # self.wbc.kc_sin = mul_vec_vec(constVector(kf * np.array([0., 0., 0.])), self.slider_A,"")
-        # self.wbc.dc_sin = mul_vec_vec(constVector(kf * np.array([0., 0., 0.])), self.slider_B,"")
-        # self.wbc.kb_sin = mul_vec_vec(constVector(kf * np.array([0., 0., 0.])), self.slider_C,"")
-        # self.wbc.db_sin = mul_vec_vec(constVector(kf * np.array([0., 0., 0.])), self.slider_D,"")
-        # dg.plug(self.kf_eff.sout, self.wbc.gain_feed_forward_force_sin)
-        # dg.plug(stack_two_vectors(constVector(np.array([0.0, 0.0])), self.sliders.A_vec, 2, 1), self.wbc.kc_sin)
-        # dg.plug(stack_two_vectors(constVector(np.array([0.0, 0.0])), self.sliders.B_vec, 2, 1), self.wbc.dc_sin)
-        # dg.plug(stack_two_vectors(stack_two_vectors(constVector(np.array([0.0])), self.sliders.C_vec, 1, 1), self.sliders.C_vec, 2, 3), self.wbc.kb_sin)
-        # dg.plug(stack_two_vectors(stack_two_vectors(constVector(np.array([0.0])), self.sliders.D_vec, 1, 1), self.sliders.D_vec, 2, 3), self.wbc.db_sin)
-
+    
     def trace(self):
         self.wbc.trace()
 
@@ -532,11 +383,7 @@ class BoltWBCStepper:
 def get_controller(prefix="biped_wbc_stepper", is_real_robot=True):
     return BoltWBCStepper(prefix, 0.6, is_real_robot)
 
-
 if ("robot" in globals()) or ("robot" in locals()):
-    from dg_demos.bolt.controllers.pd_controller import (
-        get_controller as get_pd_controller,
-    )
 
     # Setup the main controller.
     ctrl = get_controller("biped_wbc_stepper", True)
@@ -549,8 +396,10 @@ if ("robot" in globals()) or ("robot" in locals()):
     rclpy.spin_once(mocap, timeout_sec = 0.1)
 
     # Zero the initial position from the mocap signal.
-    pose = mocap.signal()
-    print("base_posture_sin: " + str(pose))
+    mocap_pose = mocap.signal()
+
+    # Zero the initial position from the mocap signal.
+    pose = np.array([0, 0, 0.38487417 - 0.05, 0, 0, 1, 0])
     #need to convert np array to signal type for dg.plug to work
     base_posture_sin = constVector(pose, "")
     op = CreateWorldFrame("wf")
@@ -567,28 +416,30 @@ if ("robot" in globals()) or ("robot" in locals()):
     )
     #
     # Create the base velocity using the IMU.
-    velocity = mocap.velocity()
+    velocity = np.array([0, 0, 0, 0, 0, 0])
     biped_velocity = constVector(velocity, "")
-    base_velocity_sin = stack_two_vectors(
-        selec_vector(biped_velocity, 0, 3),
-        robot.device.base_gyroscope,
-        3,
-        3,
-    )
+    base_velocity_sin = biped_velocity
+    # base_velocity_sin = stack_two_vectors(
+    #     selec_vector(biped_velocity, 0, 3),
+    #     robot.device.base_gyroscope,
+    #     3,
+    #     3,
+    # )
 
     # Set desired base rotation and velocity.
     des_yaw = 0.0
     ctrl.des_ori_pos_rpy_sin.value = np.array([0.0, 0.0, des_yaw])
     ctrl.des_com_vel_sin.value = np.array([0.0, 0.0, 0.0])
 
-    # def go_pd():
-    #     pd_ctrl.plug_to_robot(robot)
-
     def go_poly():
         ctrl.set_polynomial_end_effector_trajectory()
 
     def go_swing_foot_forces():
         ctrl.plug_swing_foot_forces()
+
+    def go_pd():
+        ctrl.plug_to_robot(robot)
+        print("plugged robot")
 
     def go_stepper():
         op.update()
@@ -599,7 +450,7 @@ if ("robot" in globals()) or ("robot" in locals()):
             base_posture_local_sin,
             base_velocity_sin,  # vicon.signal("biped_velocity_world")
         )
-        ctrl.trace()
+        #ctrl.trace()
 
     print("I'm ready to get your command :)")
     print("call go_stepper() to start controller")
