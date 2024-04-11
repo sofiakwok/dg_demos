@@ -24,7 +24,7 @@ def simulate(with_gui=True):
     # load controller
     ctrl = get_controller()
     ctrl.plug(
-        robot.device.slider_positions,
+        #robot.device.slider_positions,
         robot.device.joint_positions,
         robot.device.joint_velocities,
         robot.device.ctrl_joint_torques,

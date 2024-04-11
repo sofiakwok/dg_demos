@@ -269,7 +269,7 @@ class BoltWBCStepper:
         )
 
         # Connect the stepper with the wbc.
-        dg.plug(stepper.stepper.contact_array_sout, wbc.cnt_array_sin)
+        #dg.plug(stepper.stepper.contact_array_sout, wbc.cnt_array_sin)
 
         def plug_des_pos(stepper_pos, imp):
             dg.plug(
@@ -356,29 +356,20 @@ class BoltWBCStepper:
         control_period = 0.001
         planner_loop = 0.010
 
-        self.stepper.stepper.initialize(
-            is_left_leg_in_contact,
-            l_min,
-            l_max,
-            w_min,
-            w_max,
-            t_min,
-            t_max,
-            l_p,
-            self.com_height,
+        parameter_vector = np.array([is_left_leg_in_contact, l_min, l_max, w_min, w_max, t_min, t_max, l_p, self.com_height, mid_air_foot_height, control_period, planner_loop])
+
+        self.stepper.stepper.initializeStepper(
+            np.concatenate((parameter_vector,
             weight,
-            mid_air_foot_height,
-            control_period,
-            planner_loop,
             np.array([0.0, 0.1235, self.eff_offset]),
-            np.array([0.0, -0.1235, self.eff_offset]),
+            np.array([0.0, -0.1235, self.eff_offset])), axis=None)
         )
 
         ###
         # Let the biped step in place for now.
         self.des_com_vel_sin = self.stepper.stepper.desired_com_velocity_sin
         self.des_com_vel_sin.value = v_des_list
-        # self.stepper.stepper.base_yaw_sin.value = np.array([0.0, 0.0, 0.0])
+        self.stepper.stepper.base_yaw_sin.value = np.array([0.0, 0.0, 0.0])
         # self.stepper.stepper.is_closed_loop_sin.value = 0.
 
         self.set_steptime_nominal(0.22)
@@ -402,7 +393,7 @@ class BoltWBCStepper:
     def plug(self, robot, base_position, base_velocity):
         self.base_position = base_position
         self.robot = robot
-        self.sliders.plug_slider_signal(robot.device.slider_positions)
+        #self.sliders.plug_slider_signal(robot.device.slider_positions)
         self.stepper.plug(robot, base_position, base_velocity)
         self.wbc.plug(robot, base_position, base_velocity)
         self.plug_swing_foot_forces()
