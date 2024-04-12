@@ -28,9 +28,9 @@ def simulate(with_gui=True):
 
     # Update the initial state of the robot.
     q0 = bolt_config.q0.copy()
-    q0[0] = 0.0
-    q0[1] = 0.0
-    q0[2] = 0.35487417
+    q0[0] = 0.5
+    # q0[1] = 0.0
+    # q0[2] = 0.35487417
     # q0[6] = 1.0
     robot.reset_state(q0, bolt_config.v0)
     ctrl = get_controller()
@@ -38,21 +38,20 @@ def simulate(with_gui=True):
     ctrl.plug(robot, *robot.base_signals())
 
     ctrl.trace()
-    robot.start_tracer()
+    #robot.start_tracer()
 
     # robot.run(1000)
 
-    # robot.run(100,0.01)
-    ctrl.set_kf(1)
+    #robot.run(100,0.01)
+    ctrl.set_kf(5)
     ctrl.start()
-    robot.run(3000, 0.001)
+    robot.run(3000, 0.01)
     # print("after start")
-    from dynamic_graph import writeGraph
-
-    writeGraph("/tmp/my_graph.dot")
+    # from dynamic_graph import writeGraph
+    # writeGraph("/tmp/my_graph.dot")
     # robot.run(1000,0.01)
     print("Finished normally!")
-    robot.stop_tracer()
+    #robot.stop_tracer()
 
 
 if __name__ == "__main__":
