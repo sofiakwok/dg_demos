@@ -22,7 +22,7 @@ def simulate(with_gui=True):
     #
     # setup and run simulation
     #
-    robot = get_bolt_robot(use_fixed_base=False)
+    robot = get_bolt_robot(use_fixed_base=True)
     p.resetDebugVisualizerCamera(1.3, 60, -35, (0.0, 0.0, 0.0))
     bolt_config = BoltRWConfig()
 
