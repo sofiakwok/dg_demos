@@ -39,7 +39,7 @@ def simulate(with_gui=True):
     # q0[2] = 0.4
     # q0[6] = 1.0
     robot.reset_state(q0, bolt_config.v0)
-    ctrl = get_controller()
+    ctrl = get_controller(is_real_robot=False)
 
     ctrl.plug(robot, *robot.base_signals())
 

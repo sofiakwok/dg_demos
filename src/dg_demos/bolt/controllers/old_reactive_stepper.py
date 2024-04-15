@@ -588,7 +588,7 @@ class BoltWBCStepper:
 
 
 def get_controller(prefix="biped_wbc_stepper", is_real_robot=False):
-    return BoltWBCStepper(prefix, 1.0, is_real_robot)
+    return BoltWBCStepper(prefix, 0.6, is_real_robot)
 
 
 if ("robot" in globals()) or ("robot" in locals()):

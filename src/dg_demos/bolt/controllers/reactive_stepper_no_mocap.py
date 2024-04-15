@@ -389,14 +389,16 @@ if ("robot" in globals()) or ("robot" in locals()):
     ctrl = get_controller("biped_wbc_stepper", True)
 
     #Get mocap data - get one set of data, then stop
-    import rclpy
-    from dg_optitrack.subscriber import MinimalSubscriber
-    rclpy.init()
-    mocap = MinimalSubscriber()
-    rclpy.spin_once(mocap, timeout_sec = 0.1)
-
-    # Zero the initial position from the mocap signal.
-    mocap_pose = mocap.signal()
+    # import rclpy
+    # from dg_optitrack.subscriber import MinimalSubscriber
+    # rclpy.init()
+    # mocap = MinimalSubscriber()
+    # rclpy.spin_once(mocap, timeout_sec = 0.1) 
+    # # Zero the initial position from the mocap signal.
+    # mocap_pose = mocap.signal()
+    # print("mocap pose: " + str(mocap_pose))
+    # if not np.any(mocap_pose):
+    #     print("all zeros")
 
     # Zero the initial position from the mocap signal.
     pose = np.array([0, 0, 0.38487417 - 0.05, 0, 0, 1, 0])
