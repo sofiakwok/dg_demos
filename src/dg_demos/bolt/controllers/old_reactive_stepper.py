@@ -339,30 +339,42 @@ class BoltWBCStepper:
             self.eff_offset = 0.013
             # [0.1, -0.05, 0.]#[0.1, -0.025, 0.]#[0.3, 0.01, 0.]damp_ground#[0.06, -0.0, 0.]Normal
         else:
-            l_min = -0.12
-            l_max = 0.12
-            w_min = -0.04
+            l_min = -0.1
+            l_max = 0.1
+            w_min = -0.08
             w_max = 0.2
-            t_min = 0.159
-            t_max = 0.16
-            l_p = 0.0835 * 1
-            mid_air_foot_height = 0.06
+            t_min = 0.1
+            t_max = 0.8
+            l_p = 0.1035 #0.0835 * 1
+            mid_air_foot_height = 0.05
             self.base_com_offset = 0.045
-            self.com_height = 0.32795507 + 0.04 - self.base_com_offset
+            self.com_height = 0.36487417 #0.32795507 + 0.04 - self.base_com_offset
             v_des_list = np.array([0.0, -0.0, 0.0])
             self.eff_offset = 0.0171
 
-        weight = np.array([1, 5, 10, 1000, 1000, 1, 1, 1, 1])
+        #weight = np.array([1, 5, 10, 1000, 1000, 1, 1, 1, 1])
+        weight = np.array([1, 1, 5, 1000, 1000, 100000, 100000, 100000, 100000])
         control_period = 0.001
         planner_loop = 0.010
+        q = np.matrix(BoltConfig.initial_configuration).T
+        x_des_local = [
+        q[0].item(),
+        q[1].item(),
+        0.0,
+        q[0].item(),
+        q[1].item(),
+        0.0,
+        ]
 
         parameter_vector = np.array([is_left_leg_in_contact, l_min, l_max, w_min, w_max, t_min, t_max, l_p, self.com_height, mid_air_foot_height, control_period, planner_loop])
 
         self.stepper.stepper.initializeStepper(
             np.concatenate((parameter_vector,
             weight,
-            np.array([0.0, 0.1235, self.eff_offset]),
-            np.array([0.0, -0.1235, self.eff_offset])), axis=None)
+            #np.array([0.0, 0.1235, self.eff_offset]),
+            #np.array([0.0, -0.1235, self.eff_offset]))
+            x_des_local[:3],
+            x_des_local[3:]), axis=None)
         )
 
         ###
@@ -401,7 +413,7 @@ class BoltWBCStepper:
     def plug_base_as_com(self, base_position, base_velocity_world):
         self.wbc.plug_base_as_com(base_position, base_velocity_world)
         self.wbc.des_com_pos_sin.value = np.array(
-            [0.0, 0.0, self.com_height + self.base_com_offset]
+            [0.0, 0.0, self.com_height]# + self.base_com_offset]
         )
 
     # def set_eff_pd(self, p, p_z, d):
@@ -416,7 +428,6 @@ class BoltWBCStepper:
     def set_kf(self, kf):
         self.kf_eff = kf
         if self.is_real_robot:
-            x = 2
             self.wbc.kc_sin.value = self.kf_eff * np.array([0.0, 0.0, 60.0])
             self.wbc.dc_sin.value = self.kf_eff * np.array([0.0, 0.0, 0.1])
             self.wbc.kb_sin.value = self.kf_eff * np.array([3.8, 3.2, 0.0])
@@ -577,7 +588,7 @@ class BoltWBCStepper:
 
 
 def get_controller(prefix="biped_wbc_stepper", is_real_robot=False):
-    return BoltWBCStepper(prefix, 0.6, is_real_robot)
+    return BoltWBCStepper(prefix, 1.0, is_real_robot)
 
 
 if ("robot" in globals()) or ("robot" in locals()):
@@ -627,95 +638,6 @@ if ("robot" in globals()) or ("robot" in locals()):
     des_yaw = 0.0
     ctrl.des_ori_pos_rpy_sin.value = np.array([0.0, 0.0, des_yaw])
     ctrl.des_com_vel_sin.value = np.array([0.0, 0.0, 0.0])
-
-    # Setup the gamepad subscriber.
-    # robot.ros.ros_subscribe.add('vector', 'gamepad_axes', '/gamepad_axes')
-    # gamepad_axes = robot.ros.ros_subscribe.signal('gamepad_axes')
-    # gamepad_axes.value = np.zeros(8) # Initital value
-
-    # def go_gamepad():
-    #     # Yaw control via the left and right trigger on the gamepad.
-    #     yaw_integrator = VectorIntegrator('yaw_integrator')
-    #     dg.plug(
-    #         mul_double_vec(
-    #             -0.75,
-    #             subtract_vec_vec(
-    #                 selec_vector(gamepad_axes, 7, 8),
-    #                 selec_vector(gamepad_axes, 6, 7),
-    #             )
-    #         ),
-    #         yaw_integrator.sin
-    #     )
-    #
-    #     dg.plug(
-    #         stack_two_vectors(
-    #             zero_vec(2),
-    #             yaw_integrator.sout,
-    #             2,
-    #             1
-    #         ),
-    #         ctrl.des_ori_pos_rpy_sin
-    #     )
-    #
-    # def go_gamepad_wbc_vel():
-    #     """Control the velocity via the whole body controller. """
-    #     op_quat2rpy = PoseQuaternionToPoseRPY("")
-    #     dg.plug(base_posture_local_sin, op_quat2rpy.sin)
-    #
-    #     op_rpy2matrix = RPYToRotationMatrix("")
-    #     dg.plug(
-    #         stack_two_vectors(
-    #             zero_vec(2, ''),
-    #             selec_vector(op_quat2rpy.sout, 5, 6),
-    #             2,
-    #             1
-    #         ),
-    #         op_rpy2matrix.sin
-    #     )
-    #
-    #     vel_gain = 0.70
-    #     dg.plug(
-    #         multiply_mat_vec(
-    #             op_rpy2matrix.sout,
-    #             stack_two_vectors(
-    #                 # Swap x and y axis from the gamepad.
-    #                 # For the robot, x points forward while it's y on the joystick.
-    #                 stack_two_vectors(
-    #                     mul_double_vec( vel_gain, selec_vector(gamepad_axes, 1, 2)),
-    #                     mul_double_vec(-vel_gain, selec_vector(gamepad_axes, 0, 1)),
-    #                     1,
-    #                     1
-    #                 ),
-    #                 zero_vec(1, ''),
-    #                 2,
-    #                 1
-    #             ),
-    #         ),
-    #         ctrl.wbc.des_com_vel_sin
-    #     )
-    #
-    #     dg.plug(
-    #         stack_two_vectors(
-    #             # Swap x and y axis from the gamepad.
-    #             # For the robot, x points forward while it's y on the joystick.
-    #             stack_two_vectors(
-    #                 mul_double_vec( vel_gain, selec_vector(gamepad_axes, 1, 2)),
-    #                 mul_double_vec(-vel_gain, selec_vector(gamepad_axes, 0, 1)),
-    #                 1,
-    #                 1
-    #             ),
-    #             zero_vec(1, ''),
-    #             2,
-    #             1
-    #         ),
-    #         ctrl.des_com_vel_sin
-    #         # ctrl.wbc.des_com_vel_sin
-    #     )
-    #     # ctrl.wbc.des_com_vel_sin.value = np.zeros(3)
-    #     # ctrl.des_com_vel_sin.value = np.zeros(3)
-
-    # def go_pd():
-    #     pd_ctrl.plug_to_robot(robot)
 
     def go_poly():
         ctrl.set_polynomial_end_effector_trajectory()

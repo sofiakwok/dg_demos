@@ -22,15 +22,21 @@ def simulate(with_gui=True):
     #
     # setup and run simulation
     #
+    time = 0
+    sim_freq = 10000  # Hz
+    ctrl_freq = 1000
+    plan_freq = 1000 
+
     robot = get_bolt_robot(use_fixed_base=False, init_sliders_pose=4 * [1.0])
     p.resetDebugVisualizerCamera(1.3, 60, -35, (0.0, 0.0, 0.0))
+    p.setTimeStep(1.0 / sim_freq)
     bolt_config = BoltConfig()
 
     # Update the initial state of the robot.
-    q0 = bolt_config.q0.copy()
+    q0 = bolt_config.initial_configuration.copy()
     # q0[0] = -0.1
     # q0[1] = 0.0
-    # q0[2] = 0.38487417
+    # q0[2] = 0.4
     # q0[6] = 1.0
     robot.reset_state(q0, bolt_config.v0)
     ctrl = get_controller()
@@ -43,9 +49,9 @@ def simulate(with_gui=True):
     # robot.run(1000)
 
     # robot.run(100,0.01)
-    ctrl.set_kf(5)
+    ctrl.set_kf(3)
     ctrl.start()
-    robot.run(3000, 0.01)
+    robot.run(10000, 0.001)
     # print("after start")
     from dynamic_graph import writeGraph
 

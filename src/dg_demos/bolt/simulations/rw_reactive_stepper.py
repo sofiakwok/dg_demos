@@ -45,7 +45,7 @@ def simulate(with_gui=True):
     #robot.run(100,0.01)
     ctrl.set_kf(5)
     ctrl.start()
-    robot.run(3000, 0.01)
+    robot.run(5000, 0.01)
     # print("after start")
     # from dynamic_graph import writeGraph
     # writeGraph("/tmp/my_graph.dot")
