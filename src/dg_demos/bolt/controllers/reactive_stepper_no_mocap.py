@@ -58,7 +58,7 @@ class BoltWBCStepper:
 
         ###
         # Specify gains for the controller.
-        self.kf_eff = 0.1
+        self.kf_eff = 0.15
         if self.is_real_robot:
             x = 2
             self.wbc.kc_sin.value = self.kf_eff * np.array([0.0, 0.0, 60.0])
@@ -295,7 +295,18 @@ class BoltWBCStepper:
         control_period = 0.001
         planner_loop = 0.010
 
-        parameter_vector = np.array([is_left_leg_in_contact, l_min, l_max, w_min, w_max, t_min, t_max, l_p, self.com_height, mid_air_foot_height, control_period, planner_loop])
+        parameter_vector = np.array([is_left_leg_in_contact, 
+                                     l_min, 
+                                     l_max, 
+                                     w_min,
+                                     w_max,
+                                     t_min, 
+                                     t_max, 
+                                     l_p, 
+                                     self.com_height, 
+                                     mid_air_foot_height, 
+                                     control_period, 
+                                     planner_loop])
 
         self.stepper.stepper.initializeStepper(
             np.concatenate((parameter_vector,
@@ -401,7 +412,7 @@ if ("robot" in globals()) or ("robot" in locals()):
     #     print("all zeros")
 
     # Zero the initial position from the mocap signal.
-    pose = np.array([0, 0, 0.38487417 - 0.05, 0, 0, 1, 0])
+    pose = np.array([0, 0, 0.355, 0, 0, 1, 0])
     #need to convert np array to signal type for dg.plug to work
     base_posture_sin = constVector(pose, "")
     op = CreateWorldFrame("wf")

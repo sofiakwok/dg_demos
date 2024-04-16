@@ -86,7 +86,7 @@ class BoltWBCStepper:
         # sig = add_doub_doub(1, 0, "1")
         # sig.sin1.value = 1.
         # sig.sin2.value = 0.0
-        self.kf_eff = 0.0
+        self.kf_eff = 1.0
         if self.is_real_robot:
             x = 2
             self.wbc.kc_sin.value = self.kf_eff * np.array([0.0, 0.0, 60.0])
@@ -103,36 +103,6 @@ class BoltWBCStepper:
             self.wbc.kb_sin.value = self.kf_eff * np.array([100, 100, 0.0])
             self.wbc.db_sin.value = self.kf_eff * np.array([0.1, 0.1, 0.0])
 
-        # if self.is_real_robot:
-        # self.wbc.kc_sin.sin = mul_vec_vec(constVector(self.kf_eff * np.array([0., 0., 0.])), self.slider_A,"")
-        #     self.wbc.dc_sin = mul_vec_vec(constVector(self.kf_eff * np.array([0., 0., 0.])), self.slider_B,"")
-        #     self.wbc.kb_sin = mul_vec_vec(constVector(self.kf_eff * np.array([0., 0., 0.])), self.slider_C,"")
-        #     self.wbc.db_sin = mul_vec_vec(constVector(self.kf_eff * np.array([0., 0., 0.])), self.slider_D,"")
-        # else:
-        # self.wbc.kc_sin = mul_vec_vec(constVector(self.kf_eff * np.array([0., 0., 0.])), self.slider_A,"")
-        # self.wbc.dc_sin = mul_vec_vec(constVector(self.kf_eff * np.array([0., 0., 0.])), self.slider_B,"")
-        # self.wbc.kb_sin = mul_vec_vec(constVector(self.kf_eff * np.array([0., 0., 0.])), self.slider_C,"")
-        # self.wbc.db_sin = mul_vec_vec(constVector(self.kf_eff * np.array([0., 0., 0.])), self.slider_D,"")
-        # Debug, plug som silders to the gains if needed.
-        # For the centroidal controllers base orientation (roll, pitch, yaw) PD.
-        # dg.plug(
-        #     stack_two_vectors(
-        #         self.sliders.C_vec,
-        #         constVector(np.array([25.0, 25.0])),
-        #         1,
-        #         2
-        #     ),
-        #     wbc.kb_sin
-        # )
-        # dg.plug(
-        #     stack_two_vectors(
-        #         self.sliders.D_vec,
-        #         constVector(np.array([10.0, 10.0])),
-        #         1,
-        #         2
-        #     ),
-        #     wbc.db_sin
-        # )
         if self.is_real_robot:
             wbc.des_com_pos_sin.value = np.array(
                 [0.0, 0.0, 0.38487417 - 0.05]
@@ -384,7 +354,7 @@ class BoltWBCStepper:
         self.stepper.stepper.base_yaw_sin.value = np.array([0.0, 0.0, 0.0])
         # self.stepper.stepper.is_closed_loop_sin.value = 0.
 
-        self.set_steptime_nominal(0.22)
+        #self.set_steptime_nominal(0.22)
         self.set_dynamical_end_effector_trajectory()
 
     def set_steptime_nominal(self, t_nom):
