@@ -37,7 +37,7 @@ def simulate(with_gui=True):
     qdot = np.matrix(BoltConfig.initial_velocity).T
     # q0[0] = -0.1
     # q0[1] = 0.0
-    # q0[2] = 0.4
+    q0[2] = 0.355
     # print(q0[2])
     # q0[6] = 1.0
     robot.reset_state(q0, qdot)
@@ -51,7 +51,7 @@ def simulate(with_gui=True):
     # robot.run(1000)
 
     # robot.run(100,0.01)
-    ctrl.set_kf(3)
+    ctrl.set_kf(5)
     ctrl.start()
     robot.run(10000, 0.001)
     # print("after start")
