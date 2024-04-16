@@ -354,6 +354,116 @@ class BoltWBCStepper:
             [0.0, 0.0, self.com_height + self.base_com_offset]
         )
     
+    def set_kf(self, kf):
+        self.kf_eff = kf
+        if self.is_real_robot:
+            self.wbc.kc_sin.value = self.kf_eff * np.array([0.0, 0.0, 60.0])
+            self.wbc.dc_sin.value = self.kf_eff * np.array([0.0, 0.0, 0.1])
+            self.wbc.kb_sin.value = self.kf_eff * np.array([3.8, 3.2, 0.0])
+            self.wbc.db_sin.value = self.kf_eff * np.array([0.2, 0.2, 0.0])
+            # dg.plug(stack_two_vectors(constVector(np.array([0.0, 0.0])), self.sliders.A_vec, 2, 1), self.wbc.kc_sin)
+            # dg.plug(stack_two_vectors(constVector(np.array([0.0, 0.0])), self.sliders.B_vec, 2, 1), self.wbc.dc_sin)
+            # dg.plug(stack_two_vectors(stack_two_vectors(self.sliders.C_vec, self.sliders.C_vec, 1, 1), constVector(np.array([0.0])), 2, 1), self.wbc.kb_sin)
+            # dg.plug(stack_two_vectors(stack_two_vectors(self.sliders.D_vec, self.sliders.D_vec, 1, 1), constVector(np.array([0.0])), 2, 1), self.wbc.db_sin)
+        else:
+            self.wbc.kc_sin.value = self.kf_eff * np.array([0.0, 0.0, 100.0])
+            self.wbc.dc_sin.value = self.kf_eff * np.array([0.0, 0.0, 10.0])
+            self.wbc.kb_sin.value = self.kf_eff * np.array([100, 100, 0.0])
+            self.wbc.db_sin.value = self.kf_eff * np.array([0.1, 0.1, 0.0])
+        for i, imp in enumerate(self.wbc.imps):
+            if self.is_real_robot:
+                contact = Component_of_vector("imp" + str(i))
+                contact.setIndex(not i)
+                dg.plug(
+                    constVector(
+                        np.array(
+                            [
+                                1.0,
+                                1.0,
+                            ]
+                        ),
+                        "",
+                    ),
+                    contact.sin,
+                )
+                # dg.plug(self.stepper.stepper.contact_array_sout, contact.sin)
+                contact = contact.sout
+                dg.plug(
+                    mul_double_vec(
+                        contact,
+                        constVector(
+                            self.kf_eff
+                            * np.array([40.0, 40.0, 97.0, 0.0, 0.0, 0.0])
+                        ),
+                        "mulp" + str(i),
+                    ),
+                    imp.gain_proportional_sin,
+                )
+                # imp.gain_proportional_sin.value = self.kf_eff * np.array(
+                #     [40.0, 40.0, 97.0, 0.0, 0.0, 0.0]
+                # )
+                dg.plug(
+                    mul_double_vec(
+                        contact,
+                        constVector(
+                            self.kf_eff
+                            * np.array([0.26, 0.23, 0.16, 0.0, 0.0, 0.0])
+                        ),
+                        "muld" + str(i),
+                    ),
+                    imp.gain_derivative_sin,
+                )
+                # imp.gain_derivative_sin.value = self.kf_eff * np.array(
+                #     [0.26, 0.23, 0.16, 0.0, 0.0, 0.0]
+                # )
+            else:
+                contact = Component_of_vector("imp" + str(i))
+                contact.setIndex(not i)
+                dg.plug(
+                    constVector(
+                        np.array(
+                            [
+                                1.0,
+                                1.0,
+                            ]
+                        ),
+                        "",
+                    ),
+                    contact.sin,
+                )
+                # dg.plug(self.stepper.stepper.contact_array_sout, contact.sin)
+                contact = contact.sout
+                dg.plug(
+                    mul_double_vec(
+                        contact,
+                        constVector(
+                            self.kf_eff
+                            * np.array([150.0, 150.0, 150.0, 0.0, 0.0, 0.0])
+                        ),
+                        "mulp" + str(i),
+                    ),
+                    imp.gain_proportional_sin,
+                )
+                dg.plug(
+                    mul_double_vec(
+                        contact,
+                        constVector(
+                            self.kf_eff * np.array([5, 5, 5, 0.0, 0.0, 0.0])
+                        ),
+                        "muld" + str(i),
+                    ),
+                    imp.gain_derivative_sin,
+                )
+                # imp.gain_proportional_sin.value = self.kf_eff * np.array(
+                #     [150.0, 150.0, 150.0, 0.0, 0.0, 0.0]
+                # )
+                # imp.gain_derivative_sin.value = self.kf_eff * np.array(
+                #     [5, 5, 5, 0.0, 0.0, 0.0]
+                # )
+        self.wbc.w_com_ff_sin.value = 1 * np.array(
+            [0.0, 0.0, 9.81 * 1.1, 0.0, 0.0, 0.0]
+        )
+    
     def trace(self):
         self.wbc.trace()
 
@@ -391,7 +501,7 @@ class BoltWBCStepper:
             )
 
 
-def get_controller(prefix="biped_wbc_stepper", is_real_robot=True):
+def get_controller(prefix="biped_wbc_stepper", is_real_robot=False):
     return BoltWBCStepper(prefix, 0.6, is_real_robot)
 
 if ("robot" in globals()) or ("robot" in locals()):

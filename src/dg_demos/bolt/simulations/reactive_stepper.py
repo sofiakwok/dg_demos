@@ -12,7 +12,7 @@ import numpy as np
 import pybullet as p
 
 import dynamic_graph as dg
-from dg_demos.bolt.controllers.old_reactive_stepper import get_controller
+from dg_demos.bolt.controllers.reactive_stepper_no_mocap import get_controller
 
 # import the simulated robot
 from bolt.dg_bolt_bullet import get_bolt_robot, BoltConfig
@@ -53,7 +53,7 @@ def simulate(with_gui=True):
     # robot.run(100,0.01)
     ctrl.set_kf(3)
     ctrl.start()
-    robot.run(10000, 0.01)
+    robot.run(10000, 0.001)
     # print("after start")
     from dynamic_graph import writeGraph
 
