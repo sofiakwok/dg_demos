@@ -573,10 +573,13 @@ if ("robot" in globals()) or ("robot" in locals()):
             base_posture_local_sin,
             base_velocity_sin,  # vicon.signal("biped_velocity_world")
         )
-        #ctrl.trace()
+        ctrl.trace()
 
     print("I'm ready to get your command :)")
     print("call go_stepper() to start controller")
+
+    # robot.start_tracer()
+    # print("started tracer")
 
     # Start the gamepad by default.
     # go_gamepad()
