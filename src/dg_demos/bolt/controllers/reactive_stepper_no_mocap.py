@@ -465,7 +465,7 @@ class BoltWBCStepper:
         )
     
     def trace(self):
-        self.wbc.trace()
+        self.wbc.trace(self.robot)
 
         # self.robot.add_trace(self.stepper.stepper.name, 'swing_foot_forces_sout')
         self.robot.add_trace(
@@ -485,9 +485,9 @@ class BoltWBCStepper:
         self.robot.add_trace("muld0", "sout")
         self.robot.add_trace("mulp1", "sout")
         self.robot.add_trace("muld1", "sout")
-        self.robot.add_ros_and_trace("vicon_entity", "biped_position")
-        self.robot.add_ros_and_trace("vicon_entity", "biped_velocity_body")
-        self.robot.add_ros_and_trace("vicon_entity", "biped_velocity_world")
+        # self.robot.add_ros_and_trace("vicon_entity", "biped_position")
+        # self.robot.add_ros_and_trace("vicon_entity", "biped_velocity_body")
+        # self.robot.add_ros_and_trace("vicon_entity", "biped_velocity_world")
         # self.robot.add_trace("des", "sout")
 
     def plug_swing_foot_forces(self):
