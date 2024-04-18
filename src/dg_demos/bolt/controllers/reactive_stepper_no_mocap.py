@@ -58,7 +58,7 @@ class BoltWBCStepper:
 
         ###
         # Specify gains for the controller.
-        self.kf_eff = 0.15
+        self.kf_eff = 1
         if self.is_real_robot:
             x = 2
             self.wbc.kc_sin.value = self.kf_eff * np.array([0.0, 0.0, 60.0])
@@ -508,6 +508,7 @@ if ("robot" in globals()) or ("robot" in locals()):
 
     # Setup the main controller.
     ctrl = get_controller("biped_wbc_stepper", True)
+    ctrl.set_kf(1)
 
     #Get mocap data - get one set of data, then stop
     # import rclpy
@@ -522,22 +523,23 @@ if ("robot" in globals()) or ("robot" in locals()):
     #     print("all zeros")
 
     # Zero the initial position from the mocap signal.
-    pose = np.array([0, 0, 0.355, 0, 0, 1, 0])
+    pose = np.array([0, 0, 0.468, 0.0, 0.0, 0.0, 1.0])
     #need to convert np array to signal type for dg.plug to work
     base_posture_sin = constVector(pose, "")
     op = CreateWorldFrame("wf")
     dg.plug(base_posture_sin, op.frame_sin)
     op.set_which_dofs(np.array([1.0, 1.0, 0.0, 0.0, 0.0, 0.0]))
 
-    base_posture_local_sin = stack_two_vectors(
-        selec_vector(
-            subtract_vec_vec(base_posture_sin, op.world_frame_sout), 0, 3
-        ),
-        selec_vector(base_posture_sin, 3, 7),
-        3,
-        4,
-    )
-    #
+    base_posture_local_sin = base_posture_sin
+    # base_posture_local_sin = stack_two_vectors(
+    #     selec_vector(
+    #         subtract_vec_vec(base_posture_sin, op.world_frame_sout), 0, 3
+    #     ),
+    #     selec_vector(base_posture_sin, 3, 7),
+    #     3,
+    #     4,
+    # )
+    # #
     # Create the base velocity using the IMU.
     velocity = np.array([0, 0, 0, 0, 0, 0])
     biped_velocity = constVector(velocity, "")
