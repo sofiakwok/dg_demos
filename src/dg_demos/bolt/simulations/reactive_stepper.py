@@ -29,19 +29,19 @@ def simulate(with_gui=True):
 
     robot = get_bolt_robot(use_fixed_base=True, init_sliders_pose=4 * [1.0])
     p.resetDebugVisualizerCamera(1.3, 60, -35, (0.0, 0.0, 0.0))
-    p.setTimeStep(1.0 / sim_freq)
-    p.setRealTimeSimulation(0)
+    # p.setTimeStep(1.0 / sim_freq)
+    # p.setRealTimeSimulation(0)
 
     # Update the initial state of the robot.
     q0 = np.matrix(BoltConfig.initial_configuration).T
     qdot = np.matrix(BoltConfig.initial_velocity).T
     # q0[0] = -0.1
     # q0[1] = 0.0
-    q0[2] = 0.468
+    q0[2] = 0.35
     # print(q0[2])
     # q0[6] = 1.0
     robot.reset_state(q0, qdot)
-    ctrl = get_controller(is_real_robot=True)
+    ctrl = get_controller(is_real_robot=False)
 
     ctrl.plug(robot, *robot.base_signals())
 
@@ -53,7 +53,7 @@ def simulate(with_gui=True):
     # robot.run(100,0.01)
     ctrl.set_kf(1)
     ctrl.start()
-    robot.run(10000, 0.001)
+    robot.run(10000, 0.01)
     # print("after start")
     from dynamic_graph import writeGraph
 

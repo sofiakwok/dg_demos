@@ -60,7 +60,6 @@ class BoltWBCStepper:
         # Specify gains for the controller.
         self.kf_eff = 1
         if self.is_real_robot:
-            x = 2
             self.wbc.kc_sin.value = self.kf_eff * np.array([0.0, 0.0, 60.0])
             self.wbc.dc_sin.value = self.kf_eff * np.array([0.0, 0.0, 0.1])
             self.wbc.kb_sin.value = self.kf_eff * np.array([3.8, 3.2, 0.0])
