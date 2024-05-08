@@ -503,7 +503,7 @@ class BoltWBCStepper:
 def get_controller(prefix="biped_wbc_stepper", is_real_robot=False):
     return BoltWBCStepper(prefix, 0.6, is_real_robot)
 
-if ("robot" in globals()) or ("robot" in locals()):
+if True: #("robot" in globals()) or ("robot" in locals()):
     from dg_optitrack_sdk.dynamic_graph.entities import OptitrackClientEntity
     # Setup the main controller.
     ctrl = get_controller("biped_wbc_stepper", True)
@@ -511,11 +511,18 @@ if ("robot" in globals()) or ("robot" in locals()):
 
     #Get mocap data - get one set of data, then stop
     mocap = OptitrackClientEntity("optitrack_entity")
+    mocap.connect_to_optitrack("1049") #rigid body ID
+    mocap.add_object_to_track("1049")
 
-    # Zero the initial position from the mocap signal.
+    # give pose a fixed position
     pose = np.array([0, 0, 0.4, 0.0, 0.0, 0.0, 1.0])
     #need to convert np array to signal type for dg.plug to work
     base_posture_sin = constVector(pose, "")
+
+    # Zero the initial position from the vicon signal.
+    base_posture_sin = mocap.signal("1049_position")
+    print(base_posture_sin.value)
+    
     op = CreateWorldFrame("wf")
     dg.plug(base_posture_sin, op.frame_sin)
     op.set_which_dofs(np.array([1.0, 1.0, 0.0, 0.0, 0.0, 0.0]))
