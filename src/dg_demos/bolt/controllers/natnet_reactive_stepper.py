@@ -504,20 +504,13 @@ def get_controller(prefix="biped_wbc_stepper", is_real_robot=False):
     return BoltWBCStepper(prefix, 0.6, is_real_robot)
 
 if ("robot" in globals()) or ("robot" in locals()):
-
+    from dg_optitrack_sdk.dynamic_graph.entities import OptitrackClientEntity
     # Setup the main controller.
     ctrl = get_controller("biped_wbc_stepper", True)
     ctrl.set_kf(1)
 
     #Get mocap data - get one set of data, then stop
-    import rclpy
-    from dg_optitrack.subscriber import MinimalSubscriber
-    rclpy.init()
-    mocap = MinimalSubscriber()
-    rclpy.spin_once(mocap, timeout_sec = 0.01) 
-    # Zero the initial position from the mocap signal.
-    mocap_pose = mocap.signal()
-    print("mocap pose: " + str(mocap_pose))
+    mocap = OptitrackClientEntity("optitrack_entity")
 
     # Zero the initial position from the mocap signal.
     pose = np.array([0, 0, 0.4, 0.0, 0.0, 0.0, 1.0])
