@@ -511,13 +511,13 @@ if True: #("robot" in globals()) or ("robot" in locals()):
 
     #Get mocap data - get one set of data, then stop
     mocap = OptitrackClientEntity("optitrack_entity")
-    mocap.connect_to_optitrack("1049") #rigid body ID
+    mocap.connect_to_optitrack("1049") #rigid body ID for biped
     mocap.add_object_to_track("1049")
 
-    # give pose a fixed position
-    pose = np.array([0, 0, 0.4, 0.0, 0.0, 0.0, 1.0])
-    #need to convert np array to signal type for dg.plug to work
-    base_posture_sin = constVector(pose, "")
+    # # give pose a fixed position
+    # pose = np.array([0, 0, 0.4, 0.0, 0.0, 0.0, 1.0])
+    # #need to convert np array to signal type for dg.plug to work
+    # base_posture_sin = constVector(pose, "")
 
     # Zero the initial position from the vicon signal.
     base_posture_sin = mocap.signal("1049_position")
@@ -527,15 +527,15 @@ if True: #("robot" in globals()) or ("robot" in locals()):
     dg.plug(base_posture_sin, op.frame_sin)
     op.set_which_dofs(np.array([1.0, 1.0, 0.0, 0.0, 0.0, 0.0]))
 
-    base_posture_local_sin = base_posture_sin
-    # base_posture_local_sin = stack_two_vectors(
-    #     selec_vector(
-    #         subtract_vec_vec(base_posture_sin, op.world_frame_sout), 0, 3
-    #     ),
-    #     selec_vector(base_posture_sin, 3, 7),
-    #     3,
-    #     4,
-    # )
+    base_posture_local_sin = stack_two_vectors(
+        selec_vector(
+            subtract_vec_vec(base_posture_sin, op.world_frame_sout), 0, 3
+        ),
+        selec_vector(base_posture_sin, 3, 7),
+        3,
+        4,
+    )
+    print(base_posture_local_sin.value)
     # #
     # Create the base velocity using the IMU.
     velocity = np.array([0, 0, 0, 0, 0, 0])
