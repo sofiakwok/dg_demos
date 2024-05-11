@@ -505,19 +505,18 @@ def get_controller(prefix="biped_wbc_stepper", is_real_robot=False):
 
 if True: #("robot" in globals()) or ("robot" in locals()):
     from dg_optitrack_sdk.dynamic_graph.entities import OptitrackClientEntity
+    #Get mocap data
+    mocap = OptitrackClientEntity("optitrack_entity")
+    mocap.connect_to_optitrack("1049") # give desired body ID to track
+    mocap.add_object_to_track("1049") # rigid body ID for biped
+    # z height while on stand: 0.74 (m)
+    # z height while on ground: ~0.37 (m)
+    
     # Setup the main controller.
     ctrl = get_controller("biped_wbc_stepper", True)
+    # VERY IMPORTANT
+    # Should be around 1 for hardware demos
     ctrl.set_kf(1)
-
-    #Get mocap data - get one set of data, then stop
-    mocap = OptitrackClientEntity("optitrack_entity")
-    mocap.connect_to_optitrack("1049") #rigid body ID for biped
-    mocap.add_object_to_track("1049")
-
-    # # give pose a fixed position
-    # pose = np.array([0, 0, 0.4, 0.0, 0.0, 0.0, 1.0])
-    # #need to convert np array to signal type for dg.plug to work
-    # base_posture_sin = constVector(pose, "")
 
     # Zero the initial position from the vicon signal.
     base_posture_sin = mocap.signal("1049_position")
