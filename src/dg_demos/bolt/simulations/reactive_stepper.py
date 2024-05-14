@@ -27,7 +27,7 @@ def simulate(with_gui=True):
     ctrl_freq = 1000
     plan_freq = 1000 
 
-    robot = get_bolt_robot(use_fixed_base=False, init_sliders_pose=4 * [1.0])
+    robot = get_bolt_robot(use_fixed_base=True, init_sliders_pose=4 * [1.0])
     p.resetDebugVisualizerCamera(1.3, 60, -35, (0.0, 0.0, 0.0))
     p.setTimeStep(1.0 / sim_freq)
     p.setRealTimeSimulation(0)
@@ -37,7 +37,7 @@ def simulate(with_gui=True):
     qdot = np.matrix(BoltConfig.initial_velocity).T
     # q0[0] = -0.1
     # q0[1] = 0.0
-    # q0[2] = 0.35
+    q0[2] = 0.497
     # print(q0[2])
     # q0[6] = 1.0
     robot.reset_state(q0, qdot)

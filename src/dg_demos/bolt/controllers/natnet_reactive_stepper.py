@@ -271,7 +271,7 @@ class BoltWBCStepper:
             t_max = 0.8
             l_p = 0.075 * 1
             mid_air_foot_height = 0.06  # 0.07damp_ground#0.1Normal#.075
-            self.base_com_offset = 0.05
+            self.base_com_offset = 0.064979 #0.05
             self.com_height = 0.38487417 - self.base_com_offset
             v_des_list = np.array([0.0, -0.0, 0.0])
             self.eff_offset = 0.013
@@ -509,8 +509,9 @@ if True: #("robot" in globals()) or ("robot" in locals()):
     mocap = OptitrackClientEntity("optitrack_entity")
     mocap.connect_to_optitrack("1049") # give desired body ID to track
     mocap.add_object_to_track("1049") # rigid body ID for biped
-    # z height while on stand: 0.74 (m)
-    # z height while on ground: ~0.37 (m)
+    # z height while on stand: 0.74 m
+    # z height with legs straight on ground: 0.537839 m
+    # sim z height with legs straight: 0.47286 m
     
     # Setup the main controller.
     ctrl = get_controller("biped_wbc_stepper", True)
@@ -519,13 +520,10 @@ if True: #("robot" in globals()) or ("robot" in locals()):
     ctrl.set_kf(1)
 
     # Zero the initial position from the vicon signal.
-    base_posture_sin = mocap.signal("1049_position")
-    print(base_posture_sin.value)
-    
+    base_posture_sin = mocap.signal("1049_position")    
     op = CreateWorldFrame("wf")
     dg.plug(base_posture_sin, op.frame_sin)
     op.set_which_dofs(np.array([1.0, 1.0, 0.0, 0.0, 0.0, 0.0]))
-
     base_posture_local_sin = stack_two_vectors(
         selec_vector(
             subtract_vec_vec(base_posture_sin, op.world_frame_sout), 0, 3
@@ -534,7 +532,7 @@ if True: #("robot" in globals()) or ("robot" in locals()):
         3,
         4,
     )
-    print(base_posture_local_sin.value)
+    
     # #
     # Create the base velocity using the IMU.
     velocity = np.array([0, 0, 0, 0, 0, 0])
@@ -565,7 +563,7 @@ if True: #("robot" in globals()) or ("robot" in locals()):
     def go_stepper():
         op.update()
         ctrl.plug(robot, base_posture_local_sin, base_velocity_sin)
-
+        print(base_posture_local_sin.value)
         # Use base as com position gives more stable result.
         ctrl.plug_base_as_com(
             base_posture_local_sin,
