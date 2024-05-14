@@ -199,7 +199,6 @@ class BoltWBCStepper:
 
             # dg.plug(self.kf_eff.sout, imp.gain_feed_forward_force_sin)
             imp.gain_feed_forward_force_sin.value = 1.0  # centroidal gain
-        # dg.plug(stack_two_vectors(stack_two_vectors(constVector(np.array([0.0, 0.0])), self.sliders.A_vec, 2, 1), constVector(np.array([0.0, 0.0, 0.0])), 3, 3), wbc.w_com_ff_sin)
 
         self.wbc.w_com_ff_sin.value = 1 * np.array(
             [0.0, 0.0, 9.81 * 1.1, 0.0, 0.0, 0.0]
@@ -263,6 +262,7 @@ class BoltWBCStepper:
         is_left_leg_in_contact = True
         stepping_area = 0.01
         if self.is_real_robot:
+            print("real robot parameters")
             l_min = -0.15
             l_max = 0.15
             w_min = -0.05
@@ -271,8 +271,8 @@ class BoltWBCStepper:
             t_max = 0.8
             l_p = 0.075 * 1
             mid_air_foot_height = 0.06  # 0.07damp_ground#0.1Normal#.075
-            self.base_com_offset = 0.064979 #0.05
-            self.com_height = 0.38487417 - self.base_com_offset
+            self.base_com_offset = 0#0.064979 #0.05
+            self.com_height = 0.38487417 + self.base_com_offset
             v_des_list = np.array([0.0, -0.0, 0.0])
             self.eff_offset = 0.013
             # [0.1, -0.05, 0.]#[0.1, -0.025, 0.]#[0.3, 0.01, 0.]damp_ground#[0.06, -0.0, 0.]Normal
@@ -563,7 +563,7 @@ if True: #("robot" in globals()) or ("robot" in locals()):
     def go_stepper():
         op.update()
         ctrl.plug(robot, base_posture_local_sin, base_velocity_sin)
-        print(base_posture_local_sin.value)
+        print("base_posture_sin: " + str(base_posture_local_sin.value))
         # Use base as com position gives more stable result.
         ctrl.plug_base_as_com(
             base_posture_local_sin,
