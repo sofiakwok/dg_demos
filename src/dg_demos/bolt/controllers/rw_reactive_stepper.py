@@ -14,7 +14,7 @@ import dynamic_graph as dg
 from dynamic_graph.sot.core.control_pd import ControlPD
 
 from robot_properties_bolt.config import BoltRWConfig
-from mim_control.dynamic_graph.wbc_graph import WholeBodyController
+from mim_control.dynamic_graph.rw_wbc_graph import WholeBodyController
 from reactive_planners.dynamic_graph.biped_stepper import BipedStepper
 
 from dg_tools.utils import (

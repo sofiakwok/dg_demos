@@ -519,6 +519,9 @@ if True: #("robot" in globals()) or ("robot" in locals()):
     # Should be around 1 for hardware demos
     ctrl.set_kf(1)
 
+    # quaternion order: w x y z ?
+    # pose = np.array([0, 0, 0.4, 0.0, 0.0, 0.0, 1.0])
+
     # Zero the initial position from the vicon signal.
     base_posture_sin = mocap.signal("1049_position")    
     op = CreateWorldFrame("wf")
