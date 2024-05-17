@@ -39,7 +39,9 @@ class BoltPDController(object):
         #dg.plug(self.height_add.sout, self.desired_joint_angles.sin1)
         #self.joint_pos.sin2.value = np.array(self.bolt_config.initial_configuration[7:])
         self.starting_pos = np.array(6 * [0.0])
-        self.final_pos = np.array(self.bolt_config.initial_configuration[7:])
+        bend_angle = 20 * np.pi/180
+        self.final_pos = np.array([-0.3, bend_angle, -2*bend_angle, 0.3, bend_angle, -2*bend_angle])
+        #np.array(self.bolt_config.initial_configuration[7:])
         # Specify the desired joint positions.
         pd.desired_position.value = self.starting_pos
         #dg.plug(self.joint_pos.sout, self.pd.desired_position)
@@ -52,9 +54,9 @@ class BoltPDController(object):
         ctrl.pd.desired_position.value = joint_pos
             
     def bend_legs(self):
-        # go from straight legs to 45 degree bend 
-        timescale = 20000 #works without triggering driver error
-        # go to 45 degree bent knee position
+        # go from straight legs to bent legs
+        timescale = 50000 
+        # go to bent knee position
         for i in range(timescale):
             # make a linear function from starting joint position to desired joint position
             joint_pos = ctrl.final_pos*(i/timescale)
