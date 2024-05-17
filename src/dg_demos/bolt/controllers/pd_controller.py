@@ -48,21 +48,12 @@ class BoltPDController(object):
 
         print("done initializing pd controller")
 
-    def set_desired_position(self):
-
-        timescale = 20000 #works without triggering driver error
-
-        # go to 45 degree bent knee position
-        for i in range(timescale):
-            # make a linear function from starting joint position to desired joint position
-            joint_pos = ctrl.final_pos*(i/timescale)
-            # Specify the desired joint positions.
-            ctrl.pd.desired_position.value = joint_pos
-
+    def set_desired_position(self, joint_pos):
+        ctrl.pd.desired_position.value = joint_pos
+            
     def bend_legs(self):
-
+        # go from straight legs to 45 degree bend 
         timescale = 20000 #works without triggering driver error
-
         # go to 45 degree bent knee position
         for i in range(timescale):
             # make a linear function from starting joint position to desired joint position
@@ -116,14 +107,10 @@ if "robot" in globals():
 
     def go():
         ctrl.plug_to_robot(robot)
-
         print("plugged robot")
 
     def bend():
         ctrl.bend_legs()
-
-    def jump():
-        ctrl.jump()
 
     def jump_from_bend():
         ctrl.jump_from_bend()
