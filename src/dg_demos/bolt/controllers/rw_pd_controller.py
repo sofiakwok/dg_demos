@@ -2,7 +2,7 @@ import numpy as np
 
 import dynamic_graph as dg
 from dynamic_graph.sot.core.control_pd import ControlPD
-from robot_properties_bolt.config import BoltConfig
+from robot_properties_bolt.config import BoltRWConfig
 
 from dynamic_graph.sot.tools import Oscillator
 
@@ -16,20 +16,20 @@ from dg_tools.utils import add_vec_vec
 np.set_printoptions(suppress=True)
 
 
-class BoltPDController(object):
+class BoltRWPDController(object):
     def __init__(self, prefix=""):
         self.prefix = prefix
         # self.sliders = Sliders(4, self.prefix)
         # self.sliders.set_scale_values([1.5, 2.0, 1.0, 1.0])
 
-        self.bolt_config = BoltConfig()
+        self.bolt_config = BoltRWConfig()
 
         # Setup the control graph to track the desired joint positions.
         self.pd = pd = ControlPD("PDController")
 
         # setup the gains
-        pd.Kp.value = np.array(6 * [3.0])
-        pd.Kd.value = np.array(6 * [0.05])
+        pd.Kp.value = np.array(7 * [2.0]) #np.array(6 * [3.0])
+        pd.Kd.value = np.array(7 * [0.1]) #np.array(6 * [0.05])
 
         pd.desired_velocity.value = np.array(
             self.bolt_config.initial_velocity[6:]
@@ -38,49 +38,22 @@ class BoltPDController(object):
         #self.joint_pos = Multiply_double_vector(prefix + "joint_angles")
         #dg.plug(self.height_add.sout, self.desired_joint_angles.sin1)
         #self.joint_pos.sin2.value = np.array(self.bolt_config.initial_configuration[7:])
-        self.starting_pos = np.array(6 * [0.0])
-        self.final_pos = np.array(self.bolt_config.initial_configuration[7:])
+        self.joint_pos = np.array(self.bolt_config.initial_configuration[7:])
+
         # Specify the desired joint positions.
-        pd.desired_position.value = self.starting_pos
+        pd.desired_position.value = self.joint_pos
         #dg.plug(self.joint_pos.sout, self.pd.desired_position)
 
         #self.slider_values = self.sliders
 
         print("done initializing pd controller")
 
-    def set_desired_position(self):
+    # def set_sliders_desired_position(self):
+    #     # Specify the desired joint positions.
+    #     dg.plug(self.desired_joint_pos, self.pd.desired_position)
 
-        timescale = 20000 #works without triggering driver error
-
-        # go to 45 degree bent knee position
-        for i in range(timescale):
-            # make a linear function from starting joint position to desired joint position
-            joint_pos = ctrl.final_pos*(i/timescale)
-            # Specify the desired joint positions.
-            ctrl.pd.desired_position.value = joint_pos
-
-    def bend_legs(self):
-
-        timescale = 20000 #works without triggering driver error
-
-        # go to 45 degree bent knee position
-        for i in range(timescale):
-            # make a linear function from starting joint position to desired joint position
-            joint_pos = ctrl.final_pos*(i/timescale)
-            # Specify the desired joint positions.
-            ctrl.pd.desired_position.value = joint_pos
-        print(joint_pos)
-
-    def jump_from_bend(self):
-
-        timescale = 20000 #works without triggering driver error
-        # go to straight legs
-        for i in range(timescale):
-            # make a linear function from starting joint position to desired joint position
-            joint_pos = ctrl.final_pos - ctrl.final_pos*(i/timescale)
-            # Specify the desired joint positions.
-            ctrl.pd.desired_position.value = joint_pos
-        print(joint_pos)
+    def set_desired_position(self, desired_pos):
+        self.pd.desired_position.value = desired_pos
 
     def plug_to_robot(self, robot):
         self.plug(
@@ -95,12 +68,15 @@ class BoltPDController(object):
         joint_velocities,
         ctrl_joint_torques,
     ):
+        # print("plugging")
+        # Plug the sliders.
+        # self.sliders.plug_slider_signal(slider_positions)
+        # # # Offset the sliders by the current value.
+        # self.sliders.set_offset_values(-slider_positions.value)
         # plug the desired quantity signals in the pd controller.
         dg.plug(joint_positions, self.pd.position)
         dg.plug(joint_velocities, self.pd.velocity)
         dg.plug(self.pd.control, ctrl_joint_torques)
-        # self.set_desired_position()
-        # self.jump_from_bent_legs()
 
     def record_data(self, robot):
         # Adding logging traces.
@@ -108,7 +84,7 @@ class BoltPDController(object):
 
 
 def get_controller():
-    return BoltPDController(prefix="Bolt_")
+    return BoltRWPDController(prefix="Bolt_")
 
 
 if "robot" in globals():
@@ -116,17 +92,7 @@ if "robot" in globals():
 
     def go():
         ctrl.plug_to_robot(robot)
-
         print("plugged robot")
-
-    def bend():
-        ctrl.bend_legs()
-
-    def jump():
-        ctrl.jump()
-
-    def jump_from_bend():
-        ctrl.jump_from_bend()
 
     print("#####")
     print("")
