@@ -114,7 +114,7 @@ if "robot" in globals():
     def bend():
         ctrl.bend_legs()
 
-    def jump_from_bend():
+    def jump():
         ctrl.jump_from_bend()
 
     print("#####")

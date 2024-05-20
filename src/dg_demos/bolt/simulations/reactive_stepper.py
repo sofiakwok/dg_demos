@@ -12,8 +12,8 @@ import numpy as np
 import pybullet as p
 
 import dynamic_graph as dg
-from dg_demos.bolt.controllers.reactive_stepper_no_mocap import get_controller
-
+#from dg_demos.bolt.controllers.reactive_stepper_no_mocap import get_controller
+from dg_demos.bolt.controllers.natnet_reactive_stepper import get_controller
 # import the simulated robot
 from bolt.dg_bolt_bullet import get_bolt_robot, BoltConfig
 
@@ -28,6 +28,7 @@ def simulate(with_gui=True):
     plan_freq = 1000 
 
     robot = get_bolt_robot(use_fixed_base=True, init_sliders_pose=4 * [1.0])
+    print("sim robot: " + str(robot))
     p.resetDebugVisualizerCamera(1.3, 60, -35, (0.0, 0.0, 0.0))
     p.setTimeStep(1.0 / sim_freq)
     p.setRealTimeSimulation(0)
@@ -47,7 +48,7 @@ def simulate(with_gui=True):
     ctrl.plug(robot, *robot.base_signals())
 
     ctrl.trace()
-    robot.start_tracer()
+    #robot.start_tracer()
 
     # robot.run(1000)
 
@@ -56,12 +57,12 @@ def simulate(with_gui=True):
     ctrl.start()
     robot.run(10000, 0.01)
     # print("after start")
-    from dynamic_graph import writeGraph
-
-    writeGraph("/tmp/my_graph.dot")
+    # from dynamic_graph import writeGraph
+    # writeGraph("/tmp/my_graph.dot")
     # robot.run(1000,0.01)
     print("Finished normally!")
-    robot.stop_tracer()
+    ctrl.stop()
+    #robot.stop_tracer()
 
 
 if __name__ == "__main__":

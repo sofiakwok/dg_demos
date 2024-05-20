@@ -465,6 +465,7 @@ class BoltWBCStepper:
         )
     
     def trace(self):
+        print("robot for controller trace: " + str(self.robot))
         self.wbc.trace(self.robot)
 
         # self.robot.add_trace(self.stepper.stepper.name, 'swing_foot_forces_sout')
@@ -485,6 +486,8 @@ class BoltWBCStepper:
         self.robot.add_trace("muld0", "sout")
         self.robot.add_trace("mulp1", "sout")
         self.robot.add_trace("muld1", "sout")
+        #self.robot.start_tracer()
+
         # self.robot.add_ros_and_trace("vicon_entity", "biped_position")
         # self.robot.add_ros_and_trace("vicon_entity", "biped_velocity_body")
         # self.robot.add_ros_and_trace("vicon_entity", "biped_velocity_world")
@@ -504,7 +507,7 @@ class BoltWBCStepper:
 def get_controller(prefix="biped_wbc_stepper", is_real_robot=False):
     return BoltWBCStepper(prefix, 0.6, is_real_robot)
 
-if True: #("robot" in globals()) or ("robot" in locals()):
+if ("robot" in globals()) or ("robot" in locals()):
     from dg_optitrack_sdk.dynamic_graph.entities import OptitrackClientEntity
     #Get mocap data
     mocap = OptitrackClientEntity("optitrack_entity")
@@ -560,10 +563,6 @@ if True: #("robot" in globals()) or ("robot" in locals()):
     def go_swing_foot_forces():
         ctrl.plug_swing_foot_forces()
 
-    def go_pd():
-        ctrl.plug_to_robot(robot)
-        print("plugged robot")
-
     def go_stepper():
         op.update()
         ctrl.plug(robot, base_posture_local_sin, base_velocity_sin)
@@ -574,6 +573,12 @@ if True: #("robot" in globals()) or ("robot" in locals()):
             base_velocity_sin,  # vicon.signal("biped_velocity_world")
         )
         ctrl.trace()
+        robot.start_tracer()
+        ctrl.start()
+        
+    def stop():
+        ctrl.stop()
+        robot.stop_tracer()
 
     print("I'm ready to get your command :)")
     print("call go_stepper() to start controller")
