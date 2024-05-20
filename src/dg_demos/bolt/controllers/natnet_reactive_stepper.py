@@ -271,13 +271,15 @@ class BoltWBCStepper:
             l_p = 0.075 * 1
             mid_air_foot_height = 0.06  # 0.07damp_ground#0.1Normal#.075
             self.base_com_offset = 0.064979 #0.05
-            self.com_height = 0.39985317 - self.base_com_offset 
-            # 0.38487417 - self.base_com_offset
+            self.com_height = 0.38487417 - self.base_com_offset
+            #TODO: figure out how to calculate 
+            #0.39985317 - self.base_com_offset 
             # 0.35487417 is sim com height
             v_des_list = np.array([0.0, -0.0, 0.0])
             self.eff_offset = 0.013
             # [0.1, -0.05, 0.]#[0.1, -0.025, 0.]#[0.3, 0.01, 0.]damp_ground#[0.06, -0.0, 0.]Normal
         else:
+            print("not real robot parameters")
             l_min = -0.12
             l_max = 0.12
             w_min = -0.04
@@ -287,7 +289,7 @@ class BoltWBCStepper:
             l_p = 0.0835 * 1
             mid_air_foot_height = 0.06
             self.base_com_offset = 0.045
-            self.com_height = 0.32795507 + 0.04 - self.base_com_offset
+            self.com_height = 0.38487417 #0.32795507 + 0.04 - self.base_com_offset
             v_des_list = np.array([0.0, -0.0, 0.0])
             self.eff_offset = 0.0171
 
@@ -466,7 +468,7 @@ class BoltWBCStepper:
     
     def trace(self):
         print("robot for controller trace: " + str(self.robot))
-        self.robot.start_tracer()
+        # self.robot.start_tracer()
         self.wbc.trace(self.robot)
 
         # self.robot.add_trace(self.stepper.stepper.name, 'swing_foot_forces_sout')
@@ -487,11 +489,9 @@ class BoltWBCStepper:
         self.robot.add_trace("muld0", "sout")
         self.robot.add_trace("mulp1", "sout")
         self.robot.add_trace("muld1", "sout")
-        #self.robot.start_tracer()
 
-        # self.robot.add_ros_and_trace("vicon_entity", "biped_position")
-        # self.robot.add_ros_and_trace("vicon_entity", "biped_velocity_body")
-        # self.robot.add_ros_and_trace("vicon_entity", "biped_velocity_world")
+        #self.robot.add_ros_and_trace("optitrack_entity", "1049_position")
+        
         # self.robot.add_trace("des", "sout")
 
     def plug_swing_foot_forces(self):
@@ -521,11 +521,12 @@ if ("robot" in globals()) or ("robot" in locals()):
     # Setup the main controller.
     ctrl = get_controller("biped_wbc_stepper", True)
     # VERY IMPORTANT
-    # Should be around 1 for hardware demos
+    # Should be around 1 for hardware demos (?)
     ctrl.set_kf(1)
 
     # quaternion order: w x y z ?
     # pose = np.array([0, 0, 0.4, 0.0, 0.0, 0.0, 1.0])
+    # base_posture_sin: [ 0.     0.     0.54  -0.086 -0.076  0.671  0.732]
 
     # Zero the initial position from the vicon signal.
     base_posture_sin = mocap.signal("1049_position")    
@@ -574,14 +575,14 @@ if ("robot" in globals()) or ("robot" in locals()):
             base_velocity_sin,  # vicon.signal("biped_velocity_world")
         )
         ctrl.trace()
-        #robot.start_tracer()
+        robot.start_tracer()
 
     def start():
         ctrl.start()
         
     def stop():
         ctrl.stop()
-        #robot.stop_tracer()
+        robot.stop_tracer()
 
     print("I'm ready to get your command :)")
     print("call go_stepper() to start controller")

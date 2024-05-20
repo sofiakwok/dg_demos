@@ -17,6 +17,16 @@ from dg_demos.bolt.controllers.natnet_reactive_stepper import get_controller
 # import the simulated robot
 from bolt.dg_bolt_bullet import get_bolt_robot, BoltConfig
 
+from dg_tools.dynamic_graph.dg_tools_entities import (
+    CreateWorldFrame,
+)
+from dg_tools.utils import (
+    stack_two_vectors,
+    selec_vector,
+    subtract_vec_vec,
+    constVector,
+)
+
 
 def simulate(with_gui=True):
     #
@@ -27,7 +37,28 @@ def simulate(with_gui=True):
     ctrl_freq = 1000
     plan_freq = 1000 
 
-    robot = get_bolt_robot(use_fixed_base=True, init_sliders_pose=4 * [1.0])
+    from dg_optitrack_sdk.dynamic_graph.entities import OptitrackClientEntity
+    #Get mocap data
+    mocap = OptitrackClientEntity("optitrack_entity")
+    mocap.connect_to_optitrack("1049") # give desired body ID to track
+    mocap.add_object_to_track("1049") # rigid body ID for biped
+    # Zero the initial position from the vicon signal.
+    base_posture_sin = mocap.signal("1049_position")    
+    op = CreateWorldFrame("wf")
+    dg.plug(base_posture_sin, op.frame_sin)
+    op.set_which_dofs(np.array([1.0, 1.0, 0.0, 0.0, 0.0, 0.0]))
+    base_posture_local_sin = stack_two_vectors(
+        selec_vector(
+            subtract_vec_vec(base_posture_sin, op.world_frame_sout), 0, 3
+        ),
+        selec_vector(base_posture_sin, 3, 7),
+        3,
+        4,
+    ) 
+    velocity = np.array([0, 0, 0, 0, 0, 0])
+    biped_velocity = constVector(velocity, "")
+
+    robot = get_bolt_robot(use_fixed_base=False, init_sliders_pose=4 * [1.0])
     print("sim robot: " + str(robot))
     p.resetDebugVisualizerCamera(1.3, 60, -35, (0.0, 0.0, 0.0))
     p.setTimeStep(1.0 / sim_freq)
@@ -38,17 +69,18 @@ def simulate(with_gui=True):
     qdot = np.matrix(BoltConfig.initial_velocity).T
     # q0[0] = -0.1
     # q0[1] = 0.0
-    q0[2] = 0.4 - 0.064979# 0.537839 - 0.064979
+    q0[2] = 0.357222 #- 0.064979# 0.537839 - 0.064979
     print(q0)
-    # print(q0[2])
-    # q0[6] = 1.0
+
     robot.reset_state(q0, qdot)
     ctrl = get_controller(is_real_robot=False)
 
-    ctrl.plug(robot, *robot.base_signals())
+    #ctrl.plug(robot, *robot.base_signals())
+    print("base posture: " + str(base_posture_sin.value))
+    ctrl.plug(robot, base_posture_local_sin, biped_velocity)
 
     ctrl.trace()
-    #robot.start_tracer()
+    robot.start_tracer()
 
     # robot.run(1000)
 
@@ -56,13 +88,14 @@ def simulate(with_gui=True):
     ctrl.set_kf(1)
     ctrl.start()
     robot.run(10000, 0.01)
+    #TODO: use mocap signal from robot for run() 
     # print("after start")
     # from dynamic_graph import writeGraph
     # writeGraph("/tmp/my_graph.dot")
     # robot.run(1000,0.01)
     print("Finished normally!")
     ctrl.stop()
-    #robot.stop_tracer()
+    robot.stop_tracer()
 
 
 if __name__ == "__main__":
