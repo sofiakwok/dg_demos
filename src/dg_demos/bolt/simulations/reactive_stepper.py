@@ -53,7 +53,7 @@ def simulate(with_gui=True):
     # robot.run(1000)
 
     # robot.run(100,0.01)
-    ctrl.set_kf(3)
+    ctrl.set_kf(1)
     ctrl.start()
     robot.run(10000, 0.01)
     # print("after start")

@@ -466,6 +466,7 @@ class BoltWBCStepper:
     
     def trace(self):
         print("robot for controller trace: " + str(self.robot))
+        self.robot.start_tracer()
         self.wbc.trace(self.robot)
 
         # self.robot.add_trace(self.stepper.stepper.name, 'swing_foot_forces_sout')
@@ -573,12 +574,14 @@ if ("robot" in globals()) or ("robot" in locals()):
             base_velocity_sin,  # vicon.signal("biped_velocity_world")
         )
         ctrl.trace()
-        robot.start_tracer()
+        #robot.start_tracer()
+
+    def start():
         ctrl.start()
         
     def stop():
         ctrl.stop()
-        robot.stop_tracer()
+        #robot.stop_tracer()
 
     print("I'm ready to get your command :)")
     print("call go_stepper() to start controller")
