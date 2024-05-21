@@ -58,7 +58,7 @@ class BoltWBCStepper:
 
         ###
         # Specify gains for the controller.
-        self.kf_eff = 1
+        self.kf_eff = 0.0
         if self.is_real_robot:
             self.wbc.kc_sin.value = self.kf_eff * np.array([0.0, 0.0, 60.0])
             self.wbc.dc_sin.value = self.kf_eff * np.array([0.0, 0.0, 0.1])
@@ -271,7 +271,7 @@ class BoltWBCStepper:
             l_p = 0.075 * 1
             mid_air_foot_height = 0.06  # 0.07damp_ground#0.1Normal#.075
             self.base_com_offset = 0.064979 #0.05
-            self.com_height = 0.38487417 - self.base_com_offset
+            self.com_height = 0.41487417 - self.base_com_offset
             #TODO: figure out how to calculate 
             #0.39985317 - self.base_com_offset 
             # 0.35487417 is sim com height
@@ -522,7 +522,7 @@ if ("robot" in globals()) or ("robot" in locals()):
     ctrl = get_controller("biped_wbc_stepper", True)
     # VERY IMPORTANT
     # Should be around 1 for hardware demos (?)
-    ctrl.set_kf(1)
+    # ctrl.set_kf(0.5)
 
     # quaternion order: w x y z ?
     # pose = np.array([0, 0, 0.4, 0.0, 0.0, 0.0, 1.0])
@@ -575,7 +575,10 @@ if ("robot" in globals()) or ("robot" in locals()):
             base_velocity_sin,  # vicon.signal("biped_velocity_world")
         )
         ctrl.trace()
-        robot.start_tracer()
+        #robot.start_tracer()
+
+    def set_kf(value):
+        ctrl.set_kf(value)
 
     def start():
         ctrl.start()
