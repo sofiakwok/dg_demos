@@ -289,7 +289,7 @@ class BoltWBCStepper:
             l_p = 0.0835 * 1
             mid_air_foot_height = 0.06
             self.base_com_offset = 0.045
-            self.com_height = 0.38487417 #0.32795507 + 0.04 - self.base_com_offset
+            self.com_height = 0.32795507 + 0.04 - self.base_com_offset
             v_des_list = np.array([0.0, -0.0, 0.0])
             self.eff_offset = 0.0171
 

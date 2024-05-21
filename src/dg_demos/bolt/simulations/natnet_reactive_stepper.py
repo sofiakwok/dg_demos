@@ -37,6 +37,27 @@ def simulate(with_gui=True):
     ctrl_freq = 1000
     plan_freq = 1000 
 
+    from dg_optitrack_sdk.dynamic_graph.entities import OptitrackClientEntity
+    #Get mocap data
+    mocap = OptitrackClientEntity("optitrack_entity")
+    mocap.connect_to_optitrack("1049") # give desired body ID to track
+    mocap.add_object_to_track("1049") # rigid body ID for biped
+    # Zero the initial position from the vicon signal.
+    base_posture_sin = mocap.signal("1049_position")    
+    op = CreateWorldFrame("wf")
+    dg.plug(base_posture_sin, op.frame_sin)
+    op.set_which_dofs(np.array([1.0, 1.0, 0.0, 0.0, 0.0, 0.0]))
+    base_posture_local_sin = stack_two_vectors(
+        selec_vector(
+            subtract_vec_vec(base_posture_sin, op.world_frame_sout), 0, 3
+        ),
+        selec_vector(base_posture_sin, 3, 7),
+        3,
+        4,
+    ) 
+    velocity = np.array([0, 0, 0, 0, 0, 0])
+    biped_velocity = constVector(velocity, "")
+
     robot = get_bolt_robot(use_fixed_base=False, init_sliders_pose=4 * [1.0])
     print("sim robot: " + str(robot))
     p.resetDebugVisualizerCamera(1.3, 60, -35, (0.0, 0.0, 0.0))
@@ -48,7 +69,11 @@ def simulate(with_gui=True):
     qdot = np.matrix(BoltConfig.initial_velocity).T
     # q0[0] = -0.1
     # q0[1] = 0.0
-    # q0[2] = 0.357222 #- 0.064979# 0.537839 - 0.064979
+    q0[2] = 0.536895 - 0.18 #0.357222 #- 0.064979# 0.537839 - 0.064979
+    q0[3] = 0.0018172
+    q0[4] = -0.00820817
+    q0[5] = 0.0750234
+    q0[6] = 0.997146
     print(q0)
 
     # mocap: translation: [-3.83942 0.949264 0.536983]
@@ -57,7 +82,9 @@ def simulate(with_gui=True):
     robot.reset_state(q0, qdot)
     ctrl = get_controller(is_real_robot=False)
 
-    ctrl.plug(robot, *robot.base_signals())
+    #ctrl.plug(robot, *robot.base_signals())
+    print("base posture: " + str(base_posture_local_sin.value))
+    ctrl.plug(robot, base_posture_local_sin, biped_velocity)
 
     ctrl.trace()
     robot.start_tracer()
@@ -65,7 +92,7 @@ def simulate(with_gui=True):
     # robot.run(1000)
 
     # robot.run(100,0.01)
-    ctrl.set_kf(0.5)
+    ctrl.set_kf(0.1)
     #ctrl.start()
     robot.run(10000, 0.01)
     #TODO: use mocap signal from robot for run() 
