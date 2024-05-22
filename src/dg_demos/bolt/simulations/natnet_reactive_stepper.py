@@ -82,9 +82,9 @@ def simulate(with_gui=True):
     robot.reset_state(q0, qdot)
     ctrl = get_controller(is_real_robot=False)
 
-    #ctrl.plug(robot, *robot.base_signals())
+    ctrl.plug(robot, *robot.base_signals())
     print("base posture: " + str(base_posture_local_sin.value))
-    ctrl.plug(robot, base_posture_local_sin, biped_velocity)
+    #ctrl.plug(robot, base_posture_local_sin, biped_velocity)
 
     ctrl.trace()
     robot.start_tracer()
@@ -92,8 +92,8 @@ def simulate(with_gui=True):
     # robot.run(1000)
 
     # robot.run(100,0.01)
-    ctrl.set_kf(0.1)
-    #ctrl.start()
+    ctrl.set_kf(1)
+    ctrl.start()
     robot.run(10000, 0.01)
     #TODO: use mocap signal from robot for run() 
     # print("after start")

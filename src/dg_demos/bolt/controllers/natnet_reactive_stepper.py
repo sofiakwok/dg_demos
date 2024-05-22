@@ -521,12 +521,13 @@ if ("robot" in globals()) or ("robot" in locals()):
     # Setup the main controller.
     ctrl = get_controller("biped_wbc_stepper", True)
     # VERY IMPORTANT
-    # Should be around 1 for hardware demos (?)
-    # ctrl.set_kf(0.5)
+    # Should be around 1 for hardware demos
+    # ctrl.set_kf(0.25)
 
     # quaternion order: w x y z ?
     # pose = np.array([0, 0, 0.4, 0.0, 0.0, 0.0, 1.0])
-    # base_posture_sin: [ 0.     0.     0.54  -0.086 -0.076  0.671  0.732]
+    # locked legs: [-3.83979 0.949068 0.536791] ; 
+    # rotation: [x:0.00100178, y:-0.00798363, z:0.0744517, w:0.997192 ]
 
     # Zero the initial position from the vicon signal.
     base_posture_sin = mocap.signal("1049_position")    

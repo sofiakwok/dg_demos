@@ -49,6 +49,10 @@ def simulate(with_gui=True):
     # q0[0] = -0.1
     # q0[1] = 0.0
     # q0[2] = 0.357222 #- 0.064979# 0.537839 - 0.064979
+    q0[3] = 0.0018172
+    q0[4] = -0.00820817
+    q0[5] = 0.0750234
+    q0[6] = 0.997146
     print(q0)
 
     # mocap: translation: [-3.83942 0.949264 0.536983]
@@ -65,8 +69,8 @@ def simulate(with_gui=True):
     # robot.run(1000)
 
     # robot.run(100,0.01)
-    ctrl.set_kf(0.5)
-    #ctrl.start()
+    ctrl.set_kf(1)
+    ctrl.start()
     robot.run(10000, 0.01)
     #TODO: use mocap signal from robot for run() 
     # print("after start")
