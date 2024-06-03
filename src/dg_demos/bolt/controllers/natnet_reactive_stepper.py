@@ -577,7 +577,7 @@ if ("robot" in globals()) or ("robot" in locals()):
         )
         ctrl.trace()
         robot.start_tracer()
-        ctrl.start()
+        #ctrl.start()
 
     def set_kf(value):
         ctrl.set_kf(value)
@@ -586,7 +586,7 @@ if ("robot" in globals()) or ("robot" in locals()):
         ctrl.start()
         
     def stop():
-        ctrl.stop()
+        #ctrl.stop()
         robot.stop_tracer()
 
     print("I'm ready to get your command :)")
