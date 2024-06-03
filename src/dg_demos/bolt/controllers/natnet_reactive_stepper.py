@@ -490,7 +490,9 @@ class BoltWBCStepper:
         self.robot.add_trace("mulp1", "sout")
         self.robot.add_trace("muld1", "sout")
 
-        #self.robot.add_ros_and_trace("optitrack_entity", "1049_position")
+        # self.robot.add_trace("optitrack_entity", "OptitrackClientEntity(optitrack_entity)::output(vector)::1049::1049_position")
+        # self.robot.add_ros_and_trace("optitrack_entity", "1049_velocity_body")
+        # self.robot.add_trace("optitrack_entity", "1049_velocity_world")
         
         # self.robot.add_trace("des", "sout")
 

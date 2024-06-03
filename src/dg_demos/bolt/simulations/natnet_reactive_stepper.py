@@ -37,7 +37,7 @@ def simulate(with_gui=True):
     ctrl_freq = 1000
     plan_freq = 1000 
 
-    from dg_optitrack_sdk.dynamic_graph.entities import OptitrackClientEntity
+    """from dg_optitrack_sdk.dynamic_graph.entities import OptitrackClientEntity
     #Get mocap data
     mocap = OptitrackClientEntity("optitrack_entity")
     mocap.connect_to_optitrack("1049") # give desired body ID to track
@@ -56,7 +56,9 @@ def simulate(with_gui=True):
         4,
     ) 
     velocity = np.array([0, 0, 0, 0, 0, 0])
-    biped_velocity = constVector(velocity, "")
+    biped_velocity = constVector(velocity, "")"""
+
+    #load position and velocity data from txt file
 
     robot = get_bolt_robot(use_fixed_base=False, init_sliders_pose=4 * [1.0])
     print("sim robot: " + str(robot))
@@ -69,7 +71,7 @@ def simulate(with_gui=True):
     qdot = np.matrix(BoltConfig.initial_velocity).T
     # q0[0] = -0.1
     # q0[1] = 0.0
-    q0[2] = 0.536895 - 0.0649 #0.357222 - 0.064979
+    #q0[2] = 0.536895 - 0.0649 #0.357222 - 0.064979
     q0[3] = 0.0018172
     q0[4] = -0.00820817
     q0[5] = 0.0750234
@@ -83,7 +85,7 @@ def simulate(with_gui=True):
     ctrl = get_controller(is_real_robot=False)
 
     ctrl.plug(robot, *robot.base_signals())
-    print("base posture: " + str(base_posture_local_sin.value))
+    #print("base posture: " + str(base_posture_local_sin.value))
     #ctrl.plug(robot, base_posture_local_sin, biped_velocity)
 
     ctrl.trace()
