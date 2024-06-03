@@ -37,7 +37,7 @@ def simulate(with_gui=True):
     ctrl_freq = 1000
     plan_freq = 1000 
 
-    """from dg_optitrack_sdk.dynamic_graph.entities import OptitrackClientEntity
+    from dg_optitrack_sdk.dynamic_graph.entities import OptitrackClientEntity
     #Get mocap data
     mocap = OptitrackClientEntity("optitrack_entity")
     mocap.connect_to_optitrack("1049") # give desired body ID to track
@@ -56,7 +56,7 @@ def simulate(with_gui=True):
         4,
     ) 
     velocity = np.array([0, 0, 0, 0, 0, 0])
-    biped_velocity = constVector(velocity, "")"""
+    biped_velocity = constVector(velocity, "")
 
     #load position and velocity data from txt file
 
