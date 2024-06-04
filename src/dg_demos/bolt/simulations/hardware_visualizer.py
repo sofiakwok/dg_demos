@@ -12,8 +12,7 @@ import numpy as np
 import pybullet as p
 
 import dynamic_graph as dg
-#from dg_demos.bolt.controllers.reactive_stepper_no_mocap import get_controller
-from dg_demos.bolt.controllers.natnet_reactive_stepper import get_controller
+
 # import the simulated robot
 from bolt.dg_bolt_bullet import get_bolt_robot, BoltConfig
 
@@ -37,28 +36,14 @@ def simulate(with_gui=True):
     ctrl_freq = 1000
     plan_freq = 1000 
 
-    from dg_optitrack_sdk.dynamic_graph.entities import OptitrackClientEntity
-    #Get mocap data
-    mocap = OptitrackClientEntity("optitrack_entity")
-    mocap.connect_to_optitrack("1049") # give desired body ID to track
-    mocap.add_object_to_track("1049") # rigid body ID for biped
-    # Zero the initial position from the vicon signal.
-    base_posture_sin = mocap.signal("1049_position")    
-    op = CreateWorldFrame("wf")
-    dg.plug(base_posture_sin, op.frame_sin)
-    op.set_which_dofs(np.array([1.0, 1.0, 0.0, 0.0, 0.0, 0.0]))
-    base_posture_local_sin = stack_two_vectors(
-        selec_vector(
-            subtract_vec_vec(base_posture_sin, op.world_frame_sout), 0, 3
-        ),
-        selec_vector(base_posture_sin, 3, 7),
-        3,
-        4,
-    ) 
-    velocity = np.array([0, 0, 0, 0, 0, 0])
-    biped_velocity = constVector(velocity, "")
-
     #load position and velocity data from txt file
+    folder_name = "/home/sofia/bolt_data/standing_init/2024-06-03_14-43-09/"
+    #base_pos = np.loadtxt(folder_name + "dg_optitrack_entity-1049_position_world.dat")
+    joint_pos = np.loadtxt(folder_name + "dg_bolt-joint_positions.dat")
+    #starting_base = base_pos[0, :]
+    starting_joint = joint_pos[0, :]
+    # note: all txt file lines have a counter at the 0 index position
+    print(starting_joint)
 
     robot = get_bolt_robot(use_fixed_base=False, init_sliders_pose=4 * [1.0])
     print("sim robot: " + str(robot))
@@ -82,30 +67,15 @@ def simulate(with_gui=True):
     # rotation: [x:0.00281365, y:-0.00689991, z:0.0752908, w:0.997134 ]
 
     robot.reset_state(q0, qdot)
-    ctrl = get_controller(is_real_robot=False)
 
-    #ctrl.plug(robot, *robot.base_signals())
-    #print("base posture: " + str(base_posture_local_sin.value))
-    #ctrl.plug(robot, base_posture_local_sin, biped_velocity)
-
-    ctrl.trace()
-    robot.start_tracer()
-
-    # robot.run(1000)
-
-    # robot.run(100,0.01)
-    ctrl.set_kf(1)
-    ctrl.start()
     # steps, dt
-    robot.run(10000, 0.01)
-    #TODO: use mocap signal from robot for run() 
+    robot.run_hardware_data(folder_name, 0.01)
+
     # print("after start")
     # from dynamic_graph import writeGraph
     # writeGraph("/tmp/my_graph.dot")
     # robot.run(1000,0.01)
     print("Finished normally!")
-    ctrl.stop()
-    robot.stop_tracer()
 
 
 if __name__ == "__main__":
