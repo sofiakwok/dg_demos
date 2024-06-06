@@ -12,6 +12,8 @@ import numpy as np
 import pybullet as p
 
 import dynamic_graph as dg
+#from dg_demos.bolt.controllers.reactive_stepper_no_mocap import get_controller
+from dg_demos.bolt.controllers.lqr_reactive_stepper import get_controller
 # import the simulated robot
 from bolt.dg_bolt_bullet import get_bolt_robot, BoltConfig
 
@@ -35,15 +37,6 @@ def simulate(with_gui=True):
     ctrl_freq = 1000
     plan_freq = 1000 
 
-    #load position and velocity data from txt file
-    folder_name = "/home/sofia/bolt_data/standing_init/2024-06-03_14-43-09/"
-    #base_pos = np.loadtxt(folder_name + "dg_optitrack_entity-1049_position_world.dat")
-    joint_pos = np.loadtxt(folder_name + "dg_bolt-joint_positions.dat")
-    #starting_base = base_pos[0, :]
-    starting_joint = joint_pos[0, :]
-    # note: all txt file lines have a counter at the 0 index position
-    print(starting_joint)
-
     robot = get_bolt_robot(use_fixed_base=False, init_sliders_pose=4 * [1.0])
     print("sim robot: " + str(robot))
     p.resetDebugVisualizerCamera(1.3, 60, -35, (0.0, 0.0, 0.0))
@@ -55,26 +48,29 @@ def simulate(with_gui=True):
     qdot = np.matrix(BoltConfig.initial_velocity).T
     # q0[0] = -0.1
     # q0[1] = 0.0
-    #q0[2] = 0.536895 - 0.0649 #0.357222 - 0.064979
-    q0[3] = 0.0018172
-    q0[4] = -0.00820817
-    q0[5] = 0.0750234
-    q0[6] = 0.997146
+    # q0[2] = 0.357222 #- 0.064979# 0.537839 - 0.064979
+    # q0[3] = 0.0018172
+    # q0[4] = -0.00820817
+    # q0[5] = 0.0750234
+    # q0[6] = 0.997146
     print(q0)
 
     # mocap: translation: [-3.83942 0.949264 0.536983]
     # rotation: [x:0.00281365, y:-0.00689991, z:0.0752908, w:0.997134 ]
 
     robot.reset_state(q0, qdot)
+    print("state reset")
+    ctrl = get_controller(is_real_robot=False)
+    print("controller initialized")
+    #ctrl.plug(robot, *robot.base_signals())
+    print("signals plugged")
+    # ctrl.trace()
+    # robot.start_tracer()
 
-    # steps, dt
-    robot.run_hardware_data(folder_name, 0.01)
+    robot.run(10000, 0.01)
 
-    # print("after start")
-    # from dynamic_graph import writeGraph
-    # writeGraph("/tmp/my_graph.dot")
-    # robot.run(1000,0.01)
     print("Finished normally!")
+    #robot.stop_tracer()
 
 
 if __name__ == "__main__":
