@@ -53,22 +53,6 @@ class BoltLQRStepper:
             end_effector_names,
         )
 
-        print("controller initialized in lqr_reactive_stepper")
-
-        ###
-        # Specify gains for the controller.
-        # self.kf_eff = 0.0
-        # if self.is_real_robot:
-        #     self.lqr.kc_sin.value = self.kf_eff * np.array([0.0, 0.0, 60.0])
-        #     self.lqr.dc_sin.value = self.kf_eff * np.array([0.0, 0.0, 0.1])
-        #     self.lqr.kb_sin.value = self.kf_eff * np.array([3.8, 3.2, 0.0])
-        #     self.lqr.db_sin.value = self.kf_eff * np.array([0.2, 0.2, 0.0])
-        # else:
-        #     self.lqr.kc_sin.value = self.kf_eff * np.array([0.0, 0.0, 100.0])
-        #     self.lqr.dc_sin.value = self.kf_eff * np.array([0.0, 0.0, 10.0])
-        #     self.lqr.kb_sin.value = self.kf_eff * np.array([100, 100, 0.0])
-        #     self.lqr.db_sin.value = self.kf_eff * np.array([0.1, 0.1, 0.0])
-
         if self.is_real_robot:
             des_com_pos = np.array(
                 [0.0, 0.0, 0.38487417 - 0.05]
@@ -80,18 +64,12 @@ class BoltLQRStepper:
         des_com_vel = np.zeros(3)
         des_ori_vel = np.zeros(3)
 
-        des_quat = np.array([0, 0, 1, 0])
+        des_quat = np.array([0, 0, 0, 1])
 
         lqr.des_robot_configuration_sin.value = np.concatenate((des_com_pos, des_quat, np.zeros(6)), axis=None)
         lqr.des_robot_velocity_sin.value = np.zeros(12)
 
-        # if self.is_real_robot:
-        #     eef_offset = constVector(np.array([0., 0., 0.013]))
-        # else:
-        #     eef_offset = constVector(np.array([0., 0., 0.0171]))
-        print("done setting desired lqr config values")
-        # self.initialize()
-
+        print("BoltLQRStepper init done")
 
     def plug(self, robot, base_position, base_velocity):
         self.base_position = base_position
@@ -111,15 +89,15 @@ class BoltLQRStepper:
         self.lqr.trace(self.robot)
 
         # self.robot.add_trace(self.stepper.stepper.name, 'swing_foot_forces_sout')
-        self.robot.add_trace(
-            self.stepper.stepper.name, "next_support_foot_position_sout"
-        )
-        self.robot.add_trace(
-            self.stepper.stepper.name, "left_foot_position_sout"
-        )
-        self.robot.add_trace(
-            self.stepper.stepper.name, "right_foot_position_sout"
-        )
+        # self.robot.add_trace(
+        #     self.stepper.stepper.name, "next_support_foot_position_sout"
+        # )
+        # self.robot.add_trace(
+        #     self.stepper.stepper.name, "left_foot_position_sout"
+        # )
+        # self.robot.add_trace(
+        #     self.stepper.stepper.name, "right_foot_position_sout"
+        # )
         self.robot.add_trace("des_pos_l", "sout")
         self.robot.add_trace("des_pos_r", "sout")
         self.robot.add_trace("imp0", "sout")

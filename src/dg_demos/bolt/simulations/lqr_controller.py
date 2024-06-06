@@ -62,12 +62,12 @@ def simulate(with_gui=True):
     print("state reset")
     ctrl = get_controller(is_real_robot=False)
     print("controller initialized")
-    #ctrl.plug(robot, *robot.base_signals())
+    ctrl.plug(robot, *robot.base_signals())
     print("signals plugged")
     # ctrl.trace()
     # robot.start_tracer()
 
-    robot.run(10000, 0.01)
+    robot.run(1000, 0.01)
 
     print("Finished normally!")
     #robot.stop_tracer()
