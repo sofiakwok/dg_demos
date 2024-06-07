@@ -13,9 +13,8 @@ import numpy as np
 import dynamic_graph as dg
 from dynamic_graph.sot.core.control_pd import ControlPD
 
-from lqr_control.dynamic_graph.lqr_graph import LQRController
+from mim_control.dynamic_graph.lqr_graph import LQRController
 from robot_properties_bolt.config import BoltConfig
-from reactive_planners.dynamic_graph.biped_stepper import BipedStepper
 
 from dg_tools.utils import (
     constVector,
@@ -98,14 +97,14 @@ class BoltLQRStepper:
         # self.robot.add_trace(
         #     self.stepper.stepper.name, "right_foot_position_sout"
         # )
-        self.robot.add_trace("des_pos_l", "sout")
-        self.robot.add_trace("des_pos_r", "sout")
-        self.robot.add_trace("imp0", "sout")
-        self.robot.add_trace("imp1", "sout")
-        self.robot.add_trace("mulp0", "sout")
-        self.robot.add_trace("muld0", "sout")
-        self.robot.add_trace("mulp1", "sout")
-        self.robot.add_trace("muld1", "sout")
+        # self.robot.add_trace("des_pos_l", "sout")
+        # self.robot.add_trace("des_pos_r", "sout")
+        # self.robot.add_trace("imp0", "sout")
+        # self.robot.add_trace("imp1", "sout")
+        # self.robot.add_trace("mulp0", "sout")
+        # self.robot.add_trace("muld0", "sout")
+        # self.robot.add_trace("mulp1", "sout")
+        # self.robot.add_trace("muld1", "sout")
 
         # self.robot.add_trace("optitrack_entity", "1049_position")
         # self.robot.add_trace("optitrack_entity", "1049_velocity_world")

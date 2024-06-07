@@ -14,7 +14,7 @@ import time
 
 import dynamic_graph as dg
 #from dg_demos.bolt.controllers.reactive_stepper_no_mocap import get_controller
-from dg_demos.bolt.controllers.lqr_controller import get_controller
+from dg_demos.bolt.controllers.test_controller import get_controller
 # import the simulated robot
 from bolt.dg_bolt_bullet import get_bolt_robot, BoltConfig
 
@@ -64,10 +64,11 @@ def simulate(with_gui=True):
     print("controller initialized")
     ctrl.plug(robot, *robot.base_signals())
     print("signals plugged")
-    ctrl.trace()
-    robot.start_tracer()
 
-    robot.run(1000, 0.01)
+    # ctrl.trace()
+    # robot.start_tracer()
+
+    robot.run(10000, 0.01)
 
     print("Finished normally!")
     #robot.stop_tracer()

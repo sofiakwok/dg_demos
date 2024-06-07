@@ -13,7 +13,7 @@ import pybullet as p
 
 import dynamic_graph as dg
 #from dg_demos.bolt.controllers.reactive_stepper_no_mocap import get_controller
-from dg_demos.bolt.controllers.natnet_reactive_stepper import get_controller
+from dg_demos.bolt.controllers.reactive_stepper import get_controller
 # import the simulated robot
 from bolt.dg_bolt_bullet import get_bolt_robot, BoltConfig
 
