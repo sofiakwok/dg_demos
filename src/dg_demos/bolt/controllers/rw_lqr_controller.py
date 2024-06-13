@@ -13,8 +13,8 @@ import numpy as np
 import dynamic_graph as dg
 from dynamic_graph.sot.core.control_pd import ControlPD
 
-from mim_control.dynamic_graph.lqr_graph import LQRController
-from robot_properties_bolt.config import BoltConfig
+from mim_control.dynamic_graph.rw_lqr_graph import RWLQRController
+from robot_properties_bolt.config import BoltRWConfig
 
 from dg_tools.utils import (
     constVector,
@@ -38,15 +38,15 @@ from dg_tools.dynamic_graph.dg_tools_entities import (
     PoseRPYToPoseQuaternion,
 )
 
-class BoltLQRStepper:
+class BoltRWLQRStepper:
     def __init__(self, prefix, is_real_robot):
-        pin_robot = BoltConfig.buildRobotWrapper()
-        end_effector_names = BoltConfig.end_effector_names
+        pin_robot = BoltRWConfig.buildRobotWrapper()
+        end_effector_names = BoltRWConfig.end_effector_names
 
         self.is_real_robot = is_real_robot
 
         # Create the whole body controller.
-        self.lqr = lqr = LQRController(
+        self.lqr = lqr = RWLQRController(
             prefix + "_lqr",
             pin_robot,
             end_effector_names,
@@ -63,12 +63,12 @@ class BoltLQRStepper:
 
         des_quat = np.array([0, 0, 0, 1])
 
-        des_joint_pos = np.array([-0.3, 0.78539816, -1.57079633, 0.3, 0.78539816, -1.57079633])
+        des_joint_pos = np.array([-0.3, 0.78539816, -1.57079633, 0.3, 0.78539816, -1.57079633, 0])
 
         lqr.des_robot_configuration_sin.value = np.concatenate((des_com_pos, des_quat, des_joint_pos), axis=None)
-        lqr.des_robot_velocity_sin.value = np.zeros(12)
+        lqr.des_robot_velocity_sin.value = np.zeros(13)
 
-        print("BoltLQRStepper init done")
+        print("BoltRWLQRStepper init done")
 
     def plug(self, robot, base_position, base_velocity):
         self.base_position = base_position
@@ -113,7 +113,7 @@ class BoltLQRStepper:
 
 
 def get_controller(prefix="biped_lqr_stepper", is_real_robot=False):
-    return BoltLQRStepper(prefix, is_real_robot)
+    return BoltRWLQRStepper(prefix, is_real_robot)
 
 if ("robot" in globals()) or ("robot" in locals()):
     from dg_optitrack_sdk.dynamic_graph.entities import OptitrackClientEntity
@@ -163,9 +163,9 @@ if ("robot" in globals()) or ("robot" in locals()):
     # )
 
     # Set desired base rotation and velocity.
-    des_yaw = 0.0
-    ctrl.des_ori_pos_rpy_sin.value = np.array([0.0, 0.0, des_yaw])
-    ctrl.des_com_vel_sin.value = np.array([0.0, 0.0, 0.0])
+    # des_yaw = 0.0
+    # ctrl.des_ori_pos_rpy_sin.value = np.array([0.0, 0.0, des_yaw])
+    # ctrl.des_com_vel_sin.value = np.array([0.0, 0.0, 0.0])
 
     def go_poly():
         ctrl.set_polynomial_end_effector_trajectory()
