@@ -467,7 +467,7 @@ class BoltWBCStepper:
         )
     
     def trace(self):
-        print("robot for controller trace: " + str(self.robot))
+        #print("robot for controller trace: " + str(self.robot))
         self.wbc.trace(self.robot)
 
         # self.robot.add_trace(self.stepper.stepper.name, 'swing_foot_forces_sout')

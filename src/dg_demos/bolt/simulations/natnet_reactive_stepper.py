@@ -84,7 +84,7 @@ def simulate(with_gui=True):
     robot.reset_state(q0, qdot)
     ctrl = get_controller(is_real_robot=False)
 
-    #ctrl.plug(robot, *robot.base_signals())
+    ctrl.plug(robot, *robot.base_signals())
     #print("base posture: " + str(base_posture_local_sin.value))
     #ctrl.plug(robot, base_posture_local_sin, biped_velocity)
 
