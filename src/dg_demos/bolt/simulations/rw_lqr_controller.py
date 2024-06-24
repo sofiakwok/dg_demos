@@ -36,7 +36,7 @@ def simulate(with_gui=True):
     ctrl_freq = 1000
     plan_freq = 1000 
 
-    robot = get_bolt_robot(use_fixed_base=True)
+    robot = get_bolt_robot(use_fixed_base=False)
     print("sim robot: " + str(robot))
     p.resetDebugVisualizerCamera(1.3, 60, -35, (0.0, 0.0, 0.0))
     p.setTimeStep(1.0 / sim_freq)
@@ -47,11 +47,11 @@ def simulate(with_gui=True):
     qdot = np.matrix(BoltRWConfig.initial_velocity).T
     # q0[0] = -0.1
     # q0[1] = 0.0
-    # q0[2] = 0.35487417 #- 0.064979# 0.537839 - 0.064979
-    # q0[3] = 0.0018172
-    # q0[4] = -0.00820817
-    # q0[5] = 0.0750234
-    # q0[6] = 0.997146
+    # q0[2] = 0.5 #0.35487417 #- 0.064979# 0.537839 - 0.064979
+    q0[3] = 0 # 0.0018172
+    q0[4] = 0 # -0.00820817
+    q0[5] = 0 # 0.0750234
+    q0[6] = 1 # 0.997146
     print(q0)
 
     # mocap: translation: [-3.83942 0.949264 0.536983]
@@ -66,7 +66,7 @@ def simulate(with_gui=True):
     ctrl.trace()
     robot.start_tracer()
 
-    robot.run(1000, 0.01)
+    robot.run(10000, 0.0001)
 
     print("Finished normally!")
     robot.stop_tracer()

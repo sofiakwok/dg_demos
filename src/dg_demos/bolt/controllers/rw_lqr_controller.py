@@ -134,7 +134,7 @@ if ("robot" in globals()) or ("robot" in locals()):
     # quaternion order: w x y z ?
     # pose = np.array([0, 0, 0.4, 0.0, 0.0, 0.0, 1.0])
     # locked legs: [-3.83979 0.949068 0.536791] ; 
-    # rotation: [x:0.00100178, y:-0.00798363, z:0.0744517, w:0.997192 ]
+    # rotation: [w:0.00100178, x:-0.00798363, y:0.0744517, z:0.997192 ]
 
     # Zero the initial position from the vicon signal.
     base_posture_sin = mocap.signal("1049_position")    
