@@ -40,10 +40,10 @@ def simulate(with_gui=True):
     from dg_optitrack_sdk.dynamic_graph.entities import OptitrackClientEntity
     #Get mocap data
     mocap = OptitrackClientEntity("optitrack_entity")
-    mocap.connect_to_optitrack("1049") # give desired body ID to track
-    mocap.add_object_to_track("1049") # rigid body ID for biped
+    mocap.connect_to_optitrack("1076") # give desired body ID to track
+    mocap.add_object_to_track("1076") # rigid body ID for biped
     # Zero the initial position from the vicon signal.
-    base_posture_sin = mocap.signal("1049_position")    
+    base_posture_sin = mocap.signal("1076_position")    
     op = CreateWorldFrame("wf")
     dg.plug(base_posture_sin, op.frame_sin)
     op.set_which_dofs(np.array([1.0, 1.0, 0.0, 0.0, 0.0, 0.0]))

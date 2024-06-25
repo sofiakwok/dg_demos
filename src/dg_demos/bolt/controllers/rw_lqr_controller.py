@@ -63,7 +63,7 @@ class BoltRWLQRStepper:
 
         des_quat = np.array([0, 0, 0, 1])
 
-        des_joint_pos = np.array([-0.3, 0.78539816, -1.57079633, 0.3, 0.78539816, -1.57079633, 0])
+        des_joint_pos = np.zeros(7) #np.array([-0.3, 0.78539816, -1.57079633, 0.3, 0.78539816, -1.57079633, 0])
 
         lqr.des_robot_configuration_sin.value = np.concatenate((des_com_pos, des_quat, des_joint_pos), axis=None)
         lqr.des_robot_velocity_sin.value = np.zeros(13)
@@ -119,25 +119,22 @@ if ("robot" in globals()) or ("robot" in locals()):
     from dg_optitrack_sdk.dynamic_graph.entities import OptitrackClientEntity
     #Get mocap data
     mocap = OptitrackClientEntity("optitrack_entity")
-    mocap.connect_to_optitrack("1049") # give desired body ID to track
-    mocap.add_object_to_track("1049") # rigid body ID for biped
+    mocap.connect_to_optitrack("1076") # give desired body ID to track
+    mocap.add_object_to_track("1076") # rigid body ID for biped
     # z height while on stand: 0.74 m
     # z height with legs straight on ground: 0.537839 m
     # sim z height with legs straight: 0.47286 m
     
     # Setup the main controller.
     ctrl = get_controller("biped_lqr_stepper", True)
-    # VERY IMPORTANT
-    # Should be around 1 for hardware demos
-    ctrl.set_kf(1)
 
-    # quaternion order: w x y z ?
+    # quaternion order: x y z w
     # pose = np.array([0, 0, 0.4, 0.0, 0.0, 0.0, 1.0])
     # locked legs: [-3.83979 0.949068 0.536791] ; 
-    # rotation: [w:0.00100178, x:-0.00798363, y:0.0744517, z:0.997192 ]
+    # rotation: [x:0.00100178, y:-0.00798363, z:0.0744517, w:0.997192 ]
 
     # Zero the initial position from the vicon signal.
-    base_posture_sin = mocap.signal("1049_position")    
+    base_posture_sin = mocap.signal("1076_position")    
     op = CreateWorldFrame("wf")
     dg.plug(base_posture_sin, op.frame_sin)
     op.set_which_dofs(np.array([1.0, 1.0, 0.0, 0.0, 0.0, 0.0]))
@@ -148,7 +145,7 @@ if ("robot" in globals()) or ("robot" in locals()):
         selec_vector(base_posture_sin, 3, 7),
         3,
         4,
-    )
+    ) 
     
     # #
     # Create the base velocity using the IMU.
@@ -178,12 +175,12 @@ if ("robot" in globals()) or ("robot" in locals()):
         ctrl.plug(robot, base_posture_local_sin, base_velocity_sin)
         print("base_posture_sin: " + str(base_posture_local_sin.value))
         # Use base as com position gives more stable result.
-        ctrl.plug_base_as_com(
-            base_posture_local_sin,
-            base_velocity_sin,  # vicon.signal("biped_velocity_world")
-        )
+        # ctrl.plug_base_as_com(
+        #     base_posture_local_sin,
+        #     base_velocity_sin,  # vicon.signal("biped_velocity_world")
+        # )
         ctrl.trace()
-        robot.start_tracer()
+        #robot.start_tracer()
         #ctrl.start()
 
     def set_kf(value):

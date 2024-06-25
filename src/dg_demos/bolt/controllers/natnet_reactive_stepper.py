@@ -489,9 +489,9 @@ class BoltWBCStepper:
         self.robot.add_trace("mulp1", "sout")
         self.robot.add_trace("muld1", "sout")
 
-        self.robot.add_trace("optitrack_entity", "1049_position")
-        self.robot.add_trace("optitrack_entity", "1049_velocity_world")
-        self.robot.add_trace("optitrack_entity", "1049_velocity_body")
+        self.robot.add_trace("optitrack_entity", "1076_position")
+        self.robot.add_trace("optitrack_entity", "1076_velocity_world")
+        self.robot.add_trace("optitrack_entity", "1076_velocity_body")
         # self.robot.add_trace("des", "sout")
 
     def plug_swing_foot_forces(self):
