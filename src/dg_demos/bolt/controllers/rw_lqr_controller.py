@@ -128,6 +128,8 @@ if ("robot" in globals()) or ("robot" in locals()):
     # Setup the main controller.
     ctrl = get_controller("biped_lqr_stepper", True)
 
+    print("robot: " + str(robot))
+
     # quaternion order: x y z w
     # pose = np.array([0, 0, 0.4, 0.0, 0.0, 0.0, 1.0])
     # locked legs: [-3.83979 0.949068 0.536791] ; 
@@ -180,14 +182,15 @@ if ("robot" in globals()) or ("robot" in locals()):
         #     base_velocity_sin,  # vicon.signal("biped_velocity_world")
         # )
         ctrl.trace()
-        #robot.start_tracer()
+        robot.start_tracer()
         #ctrl.start()
 
     def set_kf(value):
         ctrl.set_kf(value)
 
     def start():
-        ctrl.start()
+        #ctrl.start()
+        robot.start_tracer()
         
     def stop():
         #ctrl.stop()

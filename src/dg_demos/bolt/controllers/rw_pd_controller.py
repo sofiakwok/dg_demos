@@ -1,101 +1,207 @@
+"""This file is a demo for using the DG whole body controller.
+
+License BSD-3-Clause
+Copyright (c) 2021, New York University and Max Planck Gesellschaft.
+
+Author: Julian Viereck, Elham Daneshmand
+Date:   Oct 26, 2021
+"""
 import numpy as np
 
+#np.set_printoptions(suppress=True, precision=3)
+#import pinocchio as pin
 import dynamic_graph as dg
 from dynamic_graph.sot.core.control_pd import ControlPD
+
+from mim_control.dynamic_graph.rw_pd_graph import RWPDController
 from robot_properties_bolt.config import BoltRWConfig
 
-from dynamic_graph.sot.tools import Oscillator
+from dg_tools.utils import (
+    constVector,
+    stack_two_vectors,
+    selec_vector,
+    add_vec_vec,
+    subtract_vec_vec,
+    multiply_mat_vec,
+    Stack_of_vector,
+    zero_vec,
+    mul_double_vec,
+    mul_vec_vec,
+    constDouble,
+)
+from dynamic_graph.sot.core.math_small_entities import Component_of_vector
 
-from dynamic_graph.sot.core.math_small_entities import (
-    Multiply_double_vector,
-    Add_of_double,
+from dynamic_graph.sot.core.math_small_entities import Add_of_double
+
+from dg_tools.dynamic_graph.dg_tools_entities import (
+    CreateWorldFrame,
+    PoseRPYToPoseQuaternion,
 )
 
-from dg_tools.utils import add_vec_vec
+class BoltRWPDStepper:
+    def __init__(self, prefix, is_real_robot):
+        pin_robot = BoltRWConfig.buildRobotWrapper()
+        end_effector_names = BoltRWConfig.end_effector_names
 
-np.set_printoptions(suppress=True)
+        self.is_real_robot = is_real_robot
 
-
-class BoltRWPDController(object):
-    def __init__(self, prefix=""):
-        self.prefix = prefix
-        # self.sliders = Sliders(4, self.prefix)
-        # self.sliders.set_scale_values([1.5, 2.0, 1.0, 1.0])
-
-        self.bolt_config = BoltRWConfig()
-
-        # Setup the control graph to track the desired joint positions.
-        self.pd = pd = ControlPD("PDController")
-
-        # setup the gains
-        pd.Kp.value = np.array(7 * [2.0]) #np.array(6 * [3.0])
-        pd.Kd.value = np.array(7 * [0.1]) #np.array(6 * [0.05])
-
-        pd.desired_velocity.value = np.array(
-            self.bolt_config.initial_velocity[6:]
+        # Create the whole body controller.
+        self.pd = pd = RWPDController(
+            prefix + "_pd",
+            pin_robot,
+            end_effector_names,
         )
 
-        #self.joint_pos = Multiply_double_vector(prefix + "joint_angles")
-        #dg.plug(self.height_add.sout, self.desired_joint_angles.sin1)
-        #self.joint_pos.sin2.value = np.array(self.bolt_config.initial_configuration[7:])
-        self.joint_pos = np.array(self.bolt_config.initial_configuration[7:])
+        if self.is_real_robot:
+            des_com_pos = np.array(
+                [0.0, 0.0, 0.38487417 - 0.05]
+            )  # self.com_height
+        else:
+            des_com_pos = np.array(
+                [0.0, 0.0, 0.35487417]
+            )
 
-        # Specify the desired joint positions.
-        pd.desired_position.value = self.joint_pos
-        #dg.plug(self.joint_pos.sout, self.pd.desired_position)
+        des_quat = np.array([0, 0, 0, 1])
 
-        #self.slider_values = self.sliders
+        des_joint_pos = np.zeros(7) #np.array([-0.3, 0.78539816, -1.57079633, 0.3, 0.78539816, -1.57079633, 0])
 
-        print("done initializing pd controller")
+        pd.des_robot_configuration_sin.value = np.concatenate((des_com_pos, des_quat, des_joint_pos), axis=None)
+        pd.des_robot_velocity_sin.value = np.zeros(13)
 
-    # def set_sliders_desired_position(self):
-    #     # Specify the desired joint positions.
-    #     dg.plug(self.desired_joint_pos, self.pd.desired_position)
+        print("BoltRWPDStepper init done")
 
-    def set_desired_position(self, desired_pos):
-        self.pd.desired_position.value = desired_pos
+    def plug(self, robot, base_position, base_velocity):
+        self.base_position = base_position
+        self.robot = robot
+        #self.sliders.plug_slider_signal(robot.device.slider_positions)
+        self.pd.plug(robot, base_position, base_velocity)
+        #self.plug_swing_foot_forces()
 
-    def plug_to_robot(self, robot):
-        self.plug(
-            robot.device.joint_positions,
-            robot.device.joint_velocities,
-            robot.device.ctrl_joint_torques,
+    def plug_base_as_com(self, base_position, base_velocity_world):
+        self.pd.plug_base_as_com(base_position, base_velocity_world)
+        self.pd.des_com_pos_sin.value = np.array(
+            [0.0, 0.0, self.com_height + self.base_com_offset]
         )
+    
+    def trace(self):
+        print("robot for controller trace: " + str(self.robot))
+        self.pd.trace(self.robot)
 
-    def plug(
-        self,
-        joint_positions,
-        joint_velocities,
-        ctrl_joint_torques,
-    ):
-        # print("plugging")
-        # Plug the sliders.
-        # self.sliders.plug_slider_signal(slider_positions)
-        # # # Offset the sliders by the current value.
-        # self.sliders.set_offset_values(-slider_positions.value)
-        # plug the desired quantity signals in the pd controller.
-        dg.plug(joint_positions, self.pd.position)
-        dg.plug(joint_velocities, self.pd.velocity)
-        dg.plug(self.pd.control, ctrl_joint_torques)
+        # self.robot.add_trace(self.stepper.stepper.name, 'swing_foot_forces_sout')
+        # self.robot.add_trace(
+        #     self.stepper.stepper.name, "next_support_foot_position_sout"
+        # )
+        # self.robot.add_trace(
+        #     self.stepper.stepper.name, "left_foot_position_sout"
+        # )
+        # self.robot.add_trace(
+        #     self.stepper.stepper.name, "right_foot_position_sout"
+        # )
+        # self.robot.add_trace("des_pos_l", "sout")
+        # self.robot.add_trace("des_pos_r", "sout")
+        # self.robot.add_trace("imp0", "sout")
+        # self.robot.add_trace("imp1", "sout")
+        # self.robot.add_trace("mulp0", "sout")
+        # self.robot.add_trace("muld0", "sout")
+        # self.robot.add_trace("mulp1", "sout")
+        # self.robot.add_trace("muld1", "sout")
 
-    def record_data(self, robot):
-        # Adding logging traces.
-        robot.add_trace(self.pd.name, "desired_position")
+        # self.robot.add_trace("optitrack_entity", "1049_position")
+        # self.robot.add_trace("optitrack_entity", "1049_velocity_world")
+        # self.robot.add_trace("optitrack_entity", "1049_velocity_body")
+        # self.robot.add_trace("des", "sout")
 
 
-def get_controller():
-    return BoltRWPDController(prefix="Bolt_")
+def get_controller(prefix="biped_pd_stepper", is_real_robot=False):
+    return BoltRWPDStepper(prefix, is_real_robot)
 
+if ("robot" in globals()) or ("robot" in locals()):
+    from dg_optitrack_sdk.dynamic_graph.entities import OptitrackClientEntity
+    #Get mocap data
+    mocap = OptitrackClientEntity("optitrack_entity")
+    mocap.connect_to_optitrack("1076") # give desired body ID to track
+    mocap.add_object_to_track("1076") # rigid body ID for biped
+    # z height while on stand: 0.74 m
+    # z height with legs straight on ground: 0.537839 m
+    # sim z height with legs straight: 0.47286 m
+    
+    # Setup the main controller.
+    ctrl = get_controller("biped_pd_stepper", True)
 
-if "robot" in globals():
-    ctrl = get_controller()
+    print("robot: " + str(robot))
 
-    def go():
-        ctrl.plug_to_robot(robot)
-        print("plugged robot")
+    # quaternion order: x y z w
+    # pose = np.array([0, 0, 0.4, 0.0, 0.0, 0.0, 1.0])
+    # locked legs: [-3.83979 0.949068 0.536791] ; 
+    # rotation: [x:0.00100178, y:-0.00798363, z:0.0744517, w:0.997192 ]
 
-    print("#####")
-    print("")
-    print("Please execute `go()` function to start the controller.")
-    print("")
-    print("#####")
+    # Zero the initial position from the vicon signal.
+    base_posture_sin = mocap.signal("1076_position")    
+    op = CreateWorldFrame("wf")
+    dg.plug(base_posture_sin, op.frame_sin)
+    op.set_which_dofs(np.array([1.0, 1.0, 0.0, 0.0, 0.0, 0.0]))
+    base_posture_local_sin = stack_two_vectors(
+        selec_vector(
+            subtract_vec_vec(base_posture_sin, op.world_frame_sout), 0, 3
+        ),
+        selec_vector(base_posture_sin, 3, 7),
+        3,
+        4,
+    ) 
+    
+    # #
+    # Create the base velocity using the IMU.
+    velocity = np.array([0, 0, 0, 0, 0, 0])
+    biped_velocity = constVector(velocity, "")
+    base_velocity_sin = biped_velocity
+    # base_velocity_sin = stack_two_vectors(
+    #     selec_vector(biped_velocity, 0, 3),
+    #     robot.device.base_gyroscope,
+    #     3,
+    #     3,
+    # )
+
+    # Set desired base rotation and velocity.
+    # des_yaw = 0.0
+    # ctrl.des_ori_pos_rpy_sin.value = np.array([0.0, 0.0, des_yaw])
+    # ctrl.des_com_vel_sin.value = np.array([0.0, 0.0, 0.0])
+
+    def go_poly():
+        ctrl.set_polynomial_end_effector_trajectory()
+
+    def go_swing_foot_forces():
+        ctrl.plug_swing_foot_forces()
+
+    def go_stepper():
+        op.update()
+        ctrl.plug(robot, base_posture_local_sin, base_velocity_sin)
+        print("base_posture_sin: " + str(base_posture_local_sin.value))
+        # Use base as com position gives more stable result.
+        # ctrl.plug_base_as_com(
+        #     base_posture_local_sin,
+        #     base_velocity_sin,  # vicon.signal("biped_velocity_world")
+        # )
+        ctrl.trace()
+        robot.start_tracer()
+        #ctrl.start()
+
+    def set_kf(value):
+        ctrl.set_kf(value)
+
+    def start():
+        #ctrl.start()
+        robot.start_tracer()
+        
+    def stop():
+        #ctrl.stop()
+        robot.stop_tracer()
+
+    print("I'm ready to get your command :)")
+    print("call go_stepper() to start controller")
+
+    # robot.start_tracer()
+    # print("started tracer")
+
+    # Start the gamepad by default.
+    # go_gamepad()
+    # go_gamepad_pd_vel()
