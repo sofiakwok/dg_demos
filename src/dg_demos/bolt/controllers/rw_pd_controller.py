@@ -87,28 +87,9 @@ class BoltRWPDStepper:
         print("robot for controller trace: " + str(self.robot))
         self.pd.trace(self.robot)
 
-        # self.robot.add_trace(self.stepper.stepper.name, 'swing_foot_forces_sout')
-        # self.robot.add_trace(
-        #     self.stepper.stepper.name, "next_support_foot_position_sout"
-        # )
-        # self.robot.add_trace(
-        #     self.stepper.stepper.name, "left_foot_position_sout"
-        # )
-        # self.robot.add_trace(
-        #     self.stepper.stepper.name, "right_foot_position_sout"
-        # )
-        # self.robot.add_trace("des_pos_l", "sout")
-        # self.robot.add_trace("des_pos_r", "sout")
-        # self.robot.add_trace("imp0", "sout")
-        # self.robot.add_trace("imp1", "sout")
-        # self.robot.add_trace("mulp0", "sout")
-        # self.robot.add_trace("muld0", "sout")
-        # self.robot.add_trace("mulp1", "sout")
-        # self.robot.add_trace("muld1", "sout")
-
-        # self.robot.add_trace("optitrack_entity", "1049_position")
-        # self.robot.add_trace("optitrack_entity", "1049_velocity_world")
-        # self.robot.add_trace("optitrack_entity", "1049_velocity_body")
+        self.robot.add_trace("optitrack_entity", "1076_position")
+        self.robot.add_trace("optitrack_entity", "1076_velocity_world")
+        self.robot.add_trace("optitrack_entity", "1076_velocity_body")
         # self.robot.add_trace("des", "sout")
 
 
@@ -166,12 +147,6 @@ if ("robot" in globals()) or ("robot" in locals()):
     # ctrl.des_ori_pos_rpy_sin.value = np.array([0.0, 0.0, des_yaw])
     # ctrl.des_com_vel_sin.value = np.array([0.0, 0.0, 0.0])
 
-    def go_poly():
-        ctrl.set_polynomial_end_effector_trajectory()
-
-    def go_swing_foot_forces():
-        ctrl.plug_swing_foot_forces()
-
     def go_stepper():
         op.update()
         ctrl.plug(robot, base_posture_local_sin, base_velocity_sin)
@@ -185,12 +160,9 @@ if ("robot" in globals()) or ("robot" in locals()):
         robot.start_tracer()
         #ctrl.start()
 
-    def set_kf(value):
-        ctrl.set_kf(value)
-
-    def start():
-        #ctrl.start()
-        robot.start_tracer()
+    # def start():
+    #     #ctrl.start()
+    #     robot.start_tracer()
         
     def stop():
         #ctrl.stop()
