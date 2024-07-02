@@ -75,12 +75,12 @@ class BoltWBCStepper:
             wbc.des_com_pos_sin.value = np.array(
                 [0.0, 0.0, 0.38487417 - 0.05]
             )  # self.com_height
-            self.wbc.output_torque.value = 0
+            #self.wbc.output_torque.value = 0
         else:
             wbc.des_com_pos_sin.value = np.array(
                 [0.0, 0.0, 0.40795507 - 0.045]
             )
-            self.wbc.output_torque.value = 1
+            #self.wbc.output_torque.value = 1
         wbc.des_com_vel_sin.value = np.zeros(3)
         wbc.des_ori_vel_sin.value = np.zeros(3)
 
@@ -202,6 +202,7 @@ class BoltWBCStepper:
 
             # dg.plug(self.kf_eff.sout, imp.gain_feed_forward_force_sin)
             imp.gain_feed_forward_force_sin.value = 1.0  # centroidal gain
+            imp.output_torque_sin.value = 0.0
 
         self.wbc.w_com_ff_sin.value = 1 * np.array(
             [0.0, 0.0, 9.81 * 1.1, 0.0, 0.0, 0.0]
@@ -470,7 +471,8 @@ class BoltWBCStepper:
         )
     
     def set_wbc(self, gain):
-        self.wbc.output_torque.value = gain
+        for imp in self.wbc.imps:
+            imp.output_torque_sin.value = gain
     
     def trace(self):
         #print("robot for controller trace: " + str(self.robot))
