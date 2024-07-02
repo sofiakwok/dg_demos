@@ -95,6 +95,7 @@ def simulate(with_gui=True):
 
     # robot.run(100,0.01)
     ctrl.set_kf(1)
+    ctrl.set_wbc(1)
     ctrl.start()
     # steps, dt
     robot.run(10000, 0.01)

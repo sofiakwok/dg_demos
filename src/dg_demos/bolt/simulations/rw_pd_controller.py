@@ -47,7 +47,7 @@ def simulate(with_gui=True):
     qdot = np.matrix(BoltRWConfig.initial_velocity).T
     # q0[0] = -0.1
     # q0[1] = 0.0
-    q0[2] = 0.5 #0.35487417 #- 0.064979# 0.537839 - 0.064979
+    # q0[2] = 0.459# 0.35487417 #- 0.064979# 0.537839 - 0.064979
     # q0[3] = 0 # 0.0018172
     # q0[4] = 0 # -0.00820817
     # q0[5] = 0.707 # 0.0750234
@@ -66,7 +66,7 @@ def simulate(with_gui=True):
     ctrl.trace()
     robot.start_tracer()
 
-    robot.run(10000, 0.0001)
+    robot.run(100000, 0.0001)
 
     print("Finished normally!")
     robot.stop_tracer()

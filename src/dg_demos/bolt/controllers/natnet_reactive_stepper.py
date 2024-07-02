@@ -70,14 +70,17 @@ class BoltWBCStepper:
             self.wbc.kb_sin.value = self.kf_eff * np.array([100, 100, 0.0])
             self.wbc.db_sin.value = self.kf_eff * np.array([0.1, 0.1, 0.0])
 
+
         if self.is_real_robot:
             wbc.des_com_pos_sin.value = np.array(
                 [0.0, 0.0, 0.38487417 - 0.05]
             )  # self.com_height
+            self.wbc.output_torque.value = 0
         else:
             wbc.des_com_pos_sin.value = np.array(
                 [0.0, 0.0, 0.40795507 - 0.045]
             )
+            self.wbc.output_torque.value = 1
         wbc.des_com_vel_sin.value = np.zeros(3)
         wbc.des_ori_vel_sin.value = np.zeros(3)
 
@@ -466,6 +469,9 @@ class BoltWBCStepper:
             [0.0, 0.0, 9.81 * 1.1, 0.0, 0.0, 0.0]
         )
     
+    def set_wbc(self, gain):
+        self.wbc.output_torque.value = gain
+    
     def trace(self):
         #print("robot for controller trace: " + str(self.robot))
         self.wbc.trace(self.robot)
@@ -578,6 +584,9 @@ if ("robot" in globals()) or ("robot" in locals()):
         ctrl.trace()
         robot.start_tracer()
         #ctrl.start()
+
+    def set_torque(value):
+        ctrl.set_wbc(value)
 
     def set_kf(value):
         ctrl.set_kf(value)

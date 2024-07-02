@@ -87,9 +87,9 @@ class BoltRWPDStepper:
         print("robot for controller trace: " + str(self.robot))
         self.pd.trace(self.robot)
 
-        self.robot.add_trace("optitrack_entity", "1076_position")
-        self.robot.add_trace("optitrack_entity", "1076_velocity_world")
-        self.robot.add_trace("optitrack_entity", "1076_velocity_body")
+        # self.robot.add_trace("optitrack_entity", "1076_position")
+        # self.robot.add_trace("optitrack_entity", "1076_velocity_world")
+        # self.robot.add_trace("optitrack_entity", "1076_velocity_body")
         # self.robot.add_trace("des", "sout")
 
 
@@ -158,10 +158,8 @@ if ("robot" in globals()) or ("robot" in locals()):
         # )
         ctrl.trace()
         robot.start_tracer()
-        #ctrl.start()
 
     # def start():
-    #     #ctrl.start()
     #     robot.start_tracer()
         
     def stop():
