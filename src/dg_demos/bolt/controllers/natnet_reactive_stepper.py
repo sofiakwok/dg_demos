@@ -46,6 +46,8 @@ class BoltWBCStepper:
 
         self.is_real_robot = is_real_robot
 
+        print("got from BoltConfig")
+
         # Create the whole body controller.
         qp_penalty_weights = np.array([1, 1, 1e6, 1e6, 1e6, 1])
         self.wbc = wbc = WholeBodyController(

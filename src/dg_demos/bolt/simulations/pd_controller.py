@@ -1,7 +1,7 @@
 import numpy as np
 import pybullet as p
 # import the controller
-from dg_demos.bolt.controllers.pd_controller import get_controller
+from dg_demos.bolt.controllers.bolt_pd_controller import get_controller
 
 # import the simulated robot
 from bolt.dg_bolt_bullet import get_bolt_robot, BoltConfig
@@ -20,23 +20,26 @@ def simulate(with_gui=True):
     p.setRealTimeSimulation(0)
 
     # Update the initial state of the robot.
-    q0 = bolt_config.q0.copy()
+    q0 = np.matrix(BoltConfig.initial_configuration).T
+    qdot = np.matrix(BoltConfig.initial_velocity).T
     #q0.fill(0.0)
     #q0[2] = 1.0
     #q0[6] = 1.0
-    robot.reset_state(q0, bolt_config.v0)
+    robot.reset_state(q0, qdot)
 
     # load controller
-    ctrl = get_controller()
-    ctrl.plug(
-        #robot.device.slider_positions,
-        robot.device.joint_positions,
-        robot.device.joint_velocities,
-        robot.device.ctrl_joint_torques,
-    )
+    ctrl = get_controller(is_real_robot=False)
+    ctrl.plug(robot, *robot.base_signals())
+    print("plugged signals")
+
+    ctrl.trace()
+    print("trace")
+    robot.start_tracer()
 
     # run the Simulation
-    robot.run(50000)
+    robot.run(10000, 0.0001)
+
+    robot.stop_tracer()
 
 
 if __name__ == "__main__":
