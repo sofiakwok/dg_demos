@@ -50,13 +50,13 @@ def simulate(with_gui=True):
     # robot.run(100,0.01)
     ctrl.set_kf(3)
     ctrl.start()
-    robot.run(8000, 0.01)
-    # print("after start")
-    from dynamic_graph import writeGraph
 
-    writeGraph("/tmp/my_graph.dot")
+    robot.run(10000, 0.01)
+    # print("after start")
+
     # robot.run(1000,0.01)
     print("Finished normally!")
+    ctrl.stop()
     robot.stop_tracer()
 
 

@@ -66,7 +66,7 @@ def simulate(with_gui=True):
     ctrl.trace()
     robot.start_tracer()
 
-    robot.run(100000, 0.0001)
+    robot.run(10000, 0.0001)
 
     print("Finished normally!")
     robot.stop_tracer()

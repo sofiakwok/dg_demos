@@ -63,7 +63,7 @@ class BoltRWPDStepper:
 
         des_quat = np.array([0, 0, 0, 1])
 
-        des_joint_pos = np.zeros(7) #np.array([-0.3, 0.78539816, -1.57079633, 0.3, 0.78539816, -1.57079633, 0])
+        des_joint_pos = np.array([-0.3, 0.78539816, -1.57079633, 0.3, 0.78539816, -1.57079633, 0])
 
         pd.des_robot_configuration_sin.value = np.concatenate((des_com_pos, des_quat, des_joint_pos), axis=None)
         pd.des_robot_velocity_sin.value = np.zeros(13)
