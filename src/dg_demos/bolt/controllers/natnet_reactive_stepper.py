@@ -279,7 +279,6 @@ class BoltWBCStepper:
             self.base_com_offset = 0.064979 #0.05
             self.com_height = 0.38487417 - self.base_com_offset
             #TODO: figure out how to calculate 
-            # self.com_height = 0.38487417 - self.base_com_offset
             # 0.35487417 is sim com height
             v_des_list = np.array([0.0, -0.0, 0.0])
             self.eff_offset = 0.013
@@ -499,9 +498,9 @@ class BoltWBCStepper:
         self.robot.add_trace("mulp1", "sout")
         self.robot.add_trace("muld1", "sout")
 
-        self.robot.add_trace("optitrack_entity", "1076_position")
-        self.robot.add_trace("optitrack_entity", "1076_velocity_world")
-        self.robot.add_trace("optitrack_entity", "1076_velocity_body")
+        self.robot.add_trace("optitrack_entity", "1049_position")
+        self.robot.add_trace("optitrack_entity", "1049_velocity_world")
+        self.robot.add_trace("optitrack_entity", "1049_velocity_body")
         # self.robot.add_trace("des", "sout")
 
     def plug_swing_foot_forces(self):
