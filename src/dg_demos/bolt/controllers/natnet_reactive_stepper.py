@@ -276,7 +276,7 @@ class BoltWBCStepper:
             t_max = 0.8
             l_p = 0.075 * 1
             mid_air_foot_height = 0.06  # 0.07damp_ground#0.1Normal#.075
-            self.base_com_offset = 0.064979 #0.05
+            self.base_com_offset = 0.03 #0.064979 #0.05
             self.com_height = 0.38487417 - self.base_com_offset
             #TODO: figure out how to calculate 
             # 0.35487417 is sim com height
