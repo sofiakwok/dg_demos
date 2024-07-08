@@ -72,10 +72,9 @@ class BoltWBCStepper:
             self.wbc.kb_sin.value = self.kf_eff * np.array([100, 100, 0.0])
             self.wbc.db_sin.value = self.kf_eff * np.array([0.1, 0.1, 0.0])
 
-
         if self.is_real_robot:
             wbc.des_com_pos_sin.value = np.array(
-                [0.0, 0.0, 0.38487417 - 0.05]
+                [0.0, 0.0, 0.38487417] #- 0.05]
             )  # self.com_height
             #self.wbc.output_torque.value = 0
         else:
@@ -348,14 +347,14 @@ class BoltWBCStepper:
         self.stepper.stop()
 
     def plug(self, robot, base_position, base_velocity):
-        self.base_position = base_position
         self.robot = robot
         #self.sliders.plug_slider_signal(robot.device.slider_positions)
         self.stepper.plug(robot, base_position, base_velocity)
         self.wbc.plug(robot, base_position, base_velocity)
         self.plug_swing_foot_forces()
 
-    def plug_base_as_com(self, base_position, base_velocity_world):
+    def plug_base_as_com(self, robot, base_position, base_velocity_world):
+        self.robot = robot
         self.wbc.plug_base_as_com(base_position, base_velocity_world)
         self.wbc.des_com_pos_sin.value = np.array(
             [0.0, 0.0, self.com_height + self.base_com_offset]
@@ -533,7 +532,7 @@ if ("robot" in globals()) or ("robot" in locals()):
     # Should be around 1 for hardware demos
     ctrl.set_kf(1)
 
-    # quaternion order: w x y z ?
+    # quaternion order: x y z w
     # pose = np.array([0, 0, 0.4, 0.0, 0.0, 0.0, 1.0])
     # locked legs: [-3.83979 0.949068 0.536791] ; 
     # rotation: [x:0.00100178, y:-0.00798363, z:0.0744517, w:0.997192 ]
@@ -580,13 +579,12 @@ if ("robot" in globals()) or ("robot" in locals()):
         ctrl.plug(robot, base_posture_local_sin, base_velocity_sin)
         print("base_posture_sin: " + str(base_posture_local_sin.value))
         # Use base as com position gives more stable result.
-        ctrl.plug_base_as_com(
-            base_posture_local_sin,
-            base_velocity_sin,  # vicon.signal("biped_velocity_world")
-        )
+        # ctrl.plug_base_as_com(
+        #     base_posture_local_sin,
+        #     base_velocity_sin,  # vicon.signal("biped_velocity_world")
+        # )
         ctrl.trace()
         robot.start_tracer()
-        #ctrl.start()
 
     def set_torque(value):
         ctrl.set_wbc(value)
@@ -598,7 +596,7 @@ if ("robot" in globals()) or ("robot" in locals()):
         ctrl.start()
         
     def stop():
-        #ctrl.stop()
+        # ctrl.stop()
         robot.stop_tracer()
 
     print("I'm ready to get your command :)")
