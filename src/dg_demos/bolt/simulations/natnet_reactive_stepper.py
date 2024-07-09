@@ -76,6 +76,12 @@ def simulate(with_gui=True):
     # q0[4] = -0.00820817
     # q0[5] = 0.0750234
     # q0[6] = 0.997146
+    q0[7] = 0.0 
+    q0[8] = 0.2 # bends legs at 0.2 radians
+    q0[9] = -0.4
+    q0[10] = 0.0
+    q0[11] = 0.2
+    q0[12] = -0.4
     print(q0)
 
     # mocap: translation: [-3.83942 0.949264 0.536983]

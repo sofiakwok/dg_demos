@@ -63,9 +63,10 @@ class BoltWBCStepper:
         self.kf_eff = 0.0
         if self.is_real_robot:
             self.wbc.kc_sin.value = self.kf_eff * np.array([0.0, 0.0, 60.0])
-            self.wbc.dc_sin.value = self.kf_eff * np.array([0.0, 0.0, 0.1])
+            self.wbc.dc_sin.value = self.kf_eff * np.array([0.0, 0.0, 0.01])
+            #self.wbc.dc_sin.value = self.kf_eff * np.array([0.0, 0.0, 0.1])
             self.wbc.kb_sin.value = self.kf_eff * np.array([3.8, 3.2, 0.0])
-            self.wbc.db_sin.value = self.kf_eff * np.array([0.2, 0.2, 0.0])
+            self.wbc.db_sin.value = self.kf_eff * np.array([0.02, 0.02, 0.0])
         else:
             self.wbc.kc_sin.value = self.kf_eff * np.array([0.0, 0.0, 100.0])
             self.wbc.dc_sin.value = self.kf_eff * np.array([0.0, 0.0, 10.0])
@@ -147,7 +148,8 @@ class BoltWBCStepper:
                         contact,
                         constVector(
                             self.kf_eff
-                            * np.array([0.26, 0.23, 0.16, 0.0, 0.0, 0.0])
+                            #* np.array([0.26, 0.23, 0.16, 0.0, 0.0, 0.0])
+                            * np.array([0.01, 0.01, 0.01, 0.0, 0.0, 0.0])
                         ),
                         "muld" + str(i),
                     ),
