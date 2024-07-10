@@ -39,7 +39,7 @@ class BoltPDController(object):
         #dg.plug(self.height_add.sout, self.desired_joint_angles.sin1)
         #self.joint_pos.sin2.value = np.array(self.bolt_config.initial_configuration[7:])
         self.starting_pos = np.array(6 * [0.0])
-        bend_angle = 20 * np.pi/180
+        bend_angle = 0.2 #20 * np.pi/180
         self.final_pos = np.array([0.0, bend_angle, -2*bend_angle, 0.0, bend_angle, -2*bend_angle])
         #np.array(self.bolt_config.initial_configuration[7:])
         # Specify the desired joint positions.
