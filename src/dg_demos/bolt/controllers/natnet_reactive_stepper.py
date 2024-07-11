@@ -207,6 +207,7 @@ class BoltWBCStepper:
             # dg.plug(self.kf_eff.sout, imp.gain_feed_forward_force_sin)
             imp.gain_feed_forward_force_sin.value = 1.0  # centroidal gain
             imp.output_torque_sin.value = 0.0
+            imp.desired_joint_pos_sin.value = np.zeros(6)
 
         self.wbc.w_com_ff_sin.value = 1 * np.array(
             [0.0, 0.0, 9.81 * 1.1, 0.0, 0.0, 0.0]
@@ -362,16 +363,30 @@ class BoltWBCStepper:
         self.wbc.des_com_pos_sin.value = np.array(
             [0.0, 0.0, self.com_height + self.base_com_offset]
         )
+
+    def bend_legs(self):
+        # go from straight legs to bent legs
+        # timescale = 50000 
+        timescale = 100000 
+        bend_angle = 0.2
+        final_pos = np.array([0.0, bend_angle, -2*bend_angle, 0.0, bend_angle, -2*bend_angle])
+        # go to bent knee position
+        for i in range(timescale):
+            # make a linear function from starting joint position to desired joint position
+            joint_pos = final_pos*(i/timescale)
+            # Specify the desired joint positions.
+            for imp in self.wbc.imps:
+                imp.desired_joint_pos_sin.value = joint_pos
     
     def set_kf(self, kf):
         self.kf_eff = kf
         if self.is_real_robot:
             self.wbc.kc_sin.value = self.kf_eff * np.array([0.0, 0.0, 60.0])
-            self.wbc.dc_sin.value = self.kf_eff * np.array([0.0, 0.0, 0.01])
-            #self.wbc.dc_sin.value = self.kf_eff * np.array([0.0, 0.0, 0.1])
+            #self.wbc.dc_sin.value = self.kf_eff * np.array([0.0, 0.0, 0.01])
+            self.wbc.dc_sin.value = self.kf_eff * np.array([0.0, 0.0, 0.1])
             self.wbc.kb_sin.value = self.kf_eff * np.array([3.8, 3.2, 0.0])
-            self.wbc.db_sin.value = self.kf_eff * np.array([0.02, 0.02, 0.0])
-            #self.wbc.db_sin.value = self.kf_eff * np.array([0.2, 0.2, 0.0])
+            #self.wbc.db_sin.value = self.kf_eff * np.array([0.02, 0.02, 0.0])
+            self.wbc.db_sin.value = self.kf_eff * np.array([0.2, 0.2, 0.0])
             # dg.plug(stack_two_vectors(constVector(np.array([0.0, 0.0])), self.sliders.A_vec, 2, 1), self.wbc.kc_sin)
             # dg.plug(stack_two_vectors(constVector(np.array([0.0, 0.0])), self.sliders.B_vec, 2, 1), self.wbc.dc_sin)
             # dg.plug(stack_two_vectors(stack_two_vectors(self.sliders.C_vec, self.sliders.C_vec, 1, 1), constVector(np.array([0.0])), 2, 1), self.wbc.kb_sin)
@@ -418,8 +433,8 @@ class BoltWBCStepper:
                         contact,
                         constVector(
                             self.kf_eff
-                            # * np.array([0.26, 0.23, 0.16, 0.0, 0.0, 0.0])
-                            * np.array([0.01, 0.01, 0.01, 0.0, 0.0, 0.0])
+                            * np.array([0.26, 0.23, 0.16, 0.0, 0.0, 0.0])
+                            #* np.array([0.01, 0.01, 0.01, 0.0, 0.0, 0.0])
                         ),
                         "muld" + str(i),
                     ),
@@ -591,6 +606,9 @@ if ("robot" in globals()) or ("robot" in locals()):
         # )
         ctrl.trace()
         robot.start_tracer()
+
+    def bend_legs():
+        ctrl.bend_legs()
 
     def set_torque(value):
         ctrl.set_wbc(value)

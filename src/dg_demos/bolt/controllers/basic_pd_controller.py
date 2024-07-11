@@ -88,6 +88,7 @@ class BoltPDController(object):
         joint_velocities,
         ctrl_joint_torques,
     ):
+        print(joint_positions)
         # plug the desired quantity signals in the pd controller.
         dg.plug(joint_positions, self.pd.position)
         dg.plug(joint_velocities, self.pd.velocity)
