@@ -159,6 +159,13 @@ if "robot" in globals():
     def go():
         ctrl.plug(robot, base_posture_local_sin, base_velocity_sin)
         print("plugged robot")
+        ctrl.trace()
+        robot.start_tracer()
+
+        
+    def stop():
+        #ctrl.stop()
+        robot.stop_tracer()
 
     def bend():
         ctrl.bend_legs()

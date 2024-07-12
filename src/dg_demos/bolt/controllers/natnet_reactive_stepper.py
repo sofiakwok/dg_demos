@@ -382,11 +382,11 @@ class BoltWBCStepper:
         self.kf_eff = kf
         if self.is_real_robot:
             self.wbc.kc_sin.value = self.kf_eff * np.array([0.0, 0.0, 60.0])
-            #self.wbc.dc_sin.value = self.kf_eff * np.array([0.0, 0.0, 0.01])
-            self.wbc.dc_sin.value = self.kf_eff * np.array([0.0, 0.0, 0.1])
+            self.wbc.dc_sin.value = self.kf_eff * np.array([0.0, 0.0, 0.00001])
+            #self.wbc.dc_sin.value = self.kf_eff * np.array([0.0, 0.0, 0.1])
             self.wbc.kb_sin.value = self.kf_eff * np.array([3.8, 3.2, 0.0])
-            #self.wbc.db_sin.value = self.kf_eff * np.array([0.02, 0.02, 0.0])
-            self.wbc.db_sin.value = self.kf_eff * np.array([0.2, 0.2, 0.0])
+            self.wbc.db_sin.value = self.kf_eff * np.array([0.00002, 0.00002, 0.0])
+            #self.wbc.db_sin.value = self.kf_eff * np.array([0.2, 0.2, 0.0])
             # dg.plug(stack_two_vectors(constVector(np.array([0.0, 0.0])), self.sliders.A_vec, 2, 1), self.wbc.kc_sin)
             # dg.plug(stack_two_vectors(constVector(np.array([0.0, 0.0])), self.sliders.B_vec, 2, 1), self.wbc.dc_sin)
             # dg.plug(stack_two_vectors(stack_two_vectors(self.sliders.C_vec, self.sliders.C_vec, 1, 1), constVector(np.array([0.0])), 2, 1), self.wbc.kb_sin)
@@ -433,8 +433,8 @@ class BoltWBCStepper:
                         contact,
                         constVector(
                             self.kf_eff
-                            * np.array([0.26, 0.23, 0.16, 0.0, 0.0, 0.0])
-                            #* np.array([0.01, 0.01, 0.01, 0.0, 0.0, 0.0])
+                            #* np.array([0.26, 0.23, 0.16, 0.0, 0.0, 0.0])
+                            * np.array([0.00001, 0.00001, 0.00001, 0.0, 0.0, 0.0])
                         ),
                         "muld" + str(i),
                     ),
@@ -494,6 +494,14 @@ class BoltWBCStepper:
     def set_wbc(self, gain):
         for imp in self.wbc.imps:
             imp.output_torque_sin.value = gain
+
+    def ramp_wbc(self, start_value, end_value):
+        timescale = 1000000
+        for i in range(timescale):
+            gain = start_value + (end_value - start_value) * i/timescale
+            for imp in self.wbc.imps:
+                imp.output_torque_sin.value = gain
+        print("done ramping torque")
     
     def trace(self):
         #print("robot for controller trace: " + str(self.robot))
@@ -613,6 +621,9 @@ if ("robot" in globals()) or ("robot" in locals()):
     def set_torque(value):
         ctrl.set_wbc(value)
 
+    def ramp_torque(start_value, end_value):
+        ctrl.ramp_wbc(start_value, end_value)
+
     def set_kf(value):
         ctrl.set_kf(value)
 
@@ -620,7 +631,7 @@ if ("robot" in globals()) or ("robot" in locals()):
         ctrl.start()
         
     def stop():
-        # ctrl.stop()
+        #ctrl.stop()
         robot.stop_tracer()
 
     print("I'm ready to get your command :)")
