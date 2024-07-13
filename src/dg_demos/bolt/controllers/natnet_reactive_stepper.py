@@ -149,8 +149,8 @@ class BoltWBCStepper:
                         contact,
                         constVector(
                             self.kf_eff
-                            #* np.array([0.26, 0.23, 0.16, 0.0, 0.0, 0.0])
-                            * np.array([0.01, 0.01, 0.01, 0.0, 0.0, 0.0])
+                            * np.array([0.26, 0.23, 0.16, 0.0, 0.0, 0.0])
+                            #* np.array([0.01, 0.01, 0.01, 0.0, 0.0, 0.0])
                         ),
                         "muld" + str(i),
                     ),
@@ -382,11 +382,11 @@ class BoltWBCStepper:
         self.kf_eff = kf
         if self.is_real_robot:
             self.wbc.kc_sin.value = self.kf_eff * np.array([0.0, 0.0, 60.0])
-            self.wbc.dc_sin.value = self.kf_eff * np.array([0.0, 0.0, 0.00001])
-            #self.wbc.dc_sin.value = self.kf_eff * np.array([0.0, 0.0, 0.1])
+            #self.wbc.dc_sin.value = self.kf_eff * np.array([0.0, 0.0, 0.00001])
+            self.wbc.dc_sin.value = self.kf_eff * np.array([0.0, 0.0, 0.1])
             self.wbc.kb_sin.value = self.kf_eff * np.array([3.8, 3.2, 0.0])
-            self.wbc.db_sin.value = self.kf_eff * np.array([0.00002, 0.00002, 0.0])
-            #self.wbc.db_sin.value = self.kf_eff * np.array([0.2, 0.2, 0.0])
+            #self.wbc.db_sin.value = self.kf_eff * np.array([0.00002, 0.00002, 0.0])
+            self.wbc.db_sin.value = self.kf_eff * np.array([0.2, 0.2, 0.0])
             # dg.plug(stack_two_vectors(constVector(np.array([0.0, 0.0])), self.sliders.A_vec, 2, 1), self.wbc.kc_sin)
             # dg.plug(stack_two_vectors(constVector(np.array([0.0, 0.0])), self.sliders.B_vec, 2, 1), self.wbc.dc_sin)
             # dg.plug(stack_two_vectors(stack_two_vectors(self.sliders.C_vec, self.sliders.C_vec, 1, 1), constVector(np.array([0.0])), 2, 1), self.wbc.kb_sin)
