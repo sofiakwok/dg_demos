@@ -433,8 +433,8 @@ class BoltWBCStepper:
                         contact,
                         constVector(
                             self.kf_eff
-                            #* np.array([0.26, 0.23, 0.16, 0.0, 0.0, 0.0])
-                            * np.array([0.00001, 0.00001, 0.00001, 0.0, 0.0, 0.0])
+                            * np.array([0.26, 0.23, 0.16, 0.0, 0.0, 0.0])
+                            #* np.array([0.00001, 0.00001, 0.00001, 0.0, 0.0, 0.0])
                         ),
                         "muld" + str(i),
                     ),
