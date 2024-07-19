@@ -624,6 +624,7 @@ if ("robot" in globals()) or ("robot" in locals()):
     def ramp_torque(start_value, end_value):
         # ramp_torque from 0 to 0.5 and then 0.5 to 1 seems to work well
         # may need to rebalance robot once at 0.5
+        # with taped feet
         ctrl.ramp_wbc(start_value, end_value)
 
     def set_kf(value):

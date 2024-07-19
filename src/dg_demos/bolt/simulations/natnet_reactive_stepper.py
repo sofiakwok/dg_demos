@@ -71,17 +71,17 @@ def simulate(with_gui=True):
     qdot = np.matrix(BoltConfig.initial_velocity).T
     # q0[0] = -0.1
     # q0[1] = 0.0
-    q0[2] = 0.4557 #0.46 #0.536895 - 0.0649
-    q0[3] = 0.00985471
-    q0[4] = 0.031429
-    q0[5] = 0.0700904
-    q0[6] = 0.996997
-    q0[7] = 0.000228241
-    q0[8] = 0.162571  # bends legs at 0.2 radians
-    q0[9] = -0.452813
-    q0[10] = -0.00751311
-    q0[11] = 0.193602
-    q0[12] = -0.4653
+    q0[2] = 0.425631 #0.46 #0.536895 - 0.0649
+    # q0[3] = 0.00216824
+    # q0[4] = -0.0119718
+    # q0[5] = -0.00174438
+    # q0[6] = 0.999925
+    q0[7] = -0.00910127
+    q0[8] = 0.47993  # bends legs at 0.2 radians
+    q0[9] = -0.970697
+    q0[10] = 0.0169154
+    q0[11] = 0.492898
+    q0[12] = -0.962855
     print(q0)
 
     # mocap: translation: [-3.83942 0.949264 0.536983]
@@ -104,8 +104,8 @@ def simulate(with_gui=True):
 
     # robot.run(100,0.01)
     ctrl.set_kf(1)
-    #ctrl.set_wbc(0.75) # works with stepper
-    ctrl.ramp_wbc(0, 1) # works with lower values when holding base
+    ctrl.set_wbc(0.75) # works with stepper
+    #ctrl.ramp_wbc(0, 1) # works with lower values when holding base
 
     # ctrl.bend_legs()
     # ctrl.start()
