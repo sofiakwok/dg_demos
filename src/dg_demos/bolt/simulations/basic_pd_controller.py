@@ -21,7 +21,7 @@ def simulate(with_gui=True):
     # Update the initial state of the robot.
     q0 = bolt_config.q0.copy()
     # q0.fill(0.0)
-    q0[2] = 0.5
+    q0[2] = 0.47
     # q0[6] = 1.0
     robot.reset_state(q0, bolt_config.v0)
 
@@ -35,7 +35,7 @@ def simulate(with_gui=True):
     )
 
     # run the Simulation
-    robot.run(10000, 0.001)
+    robot.run(30000, 0.001)
 
 
 if __name__ == "__main__":

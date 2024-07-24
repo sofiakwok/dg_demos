@@ -76,12 +76,12 @@ def simulate(with_gui=True):
     # q0[4] = -0.0119718
     # q0[5] = -0.00174438
     # q0[6] = 0.999925
-    q0[7] = -0.00910127
-    q0[8] = 0.47993  # bends legs at 0.2 radians
-    q0[9] = -0.970697
-    q0[10] = 0.0169154
-    q0[11] = 0.492898
-    q0[12] = -0.962855
+    q0[7] = 0.0115453
+    q0[8] = 0.563461  # bends legs at 0.2 radians
+    q0[9] = -0.972232
+    q0[10] = 0.0204723
+    q0[11] = 0.581918
+    q0[12] = -0.912048
     print(q0)
 
     # mocap: translation: [-3.83942 0.949264 0.536983]
@@ -104,11 +104,11 @@ def simulate(with_gui=True):
 
     # robot.run(100,0.01)
     ctrl.set_kf(1)
-    ctrl.set_wbc(0.75) # works with stepper
+    ctrl.set_wbc(1) # works with stepper
     #ctrl.ramp_wbc(0, 1) # works with lower values when holding base
 
     # ctrl.bend_legs()
-    # ctrl.start()
+    ctrl.start()
     # steps, dt
     robot.run(10000, 0.0001)
     #TODO: use mocap signal from robot for run() 
