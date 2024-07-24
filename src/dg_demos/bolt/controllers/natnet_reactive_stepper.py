@@ -76,7 +76,7 @@ class BoltWBCStepper:
 
         if self.is_real_robot:
             wbc.des_com_pos_sin.value = np.array(
-                [0.0, 0.0, 0.38487417] #- 0.05]
+                [0.0, 0.0, 0.38487417 - 0.05]
             )  # self.com_height
             #self.wbc.output_torque.value = 0
         else:
@@ -382,10 +382,8 @@ class BoltWBCStepper:
         self.kf_eff = kf
         if self.is_real_robot:
             self.wbc.kc_sin.value = self.kf_eff * np.array([0.0, 0.0, 60.0])
-            #self.wbc.dc_sin.value = self.kf_eff * np.array([0.0, 0.0, 0.00001])
             self.wbc.dc_sin.value = self.kf_eff * np.array([0.0, 0.0, 0.1])
             self.wbc.kb_sin.value = self.kf_eff * np.array([3.8, 3.2, 0.0])
-            #self.wbc.db_sin.value = self.kf_eff * np.array([0.00002, 0.00002, 0.0])
             self.wbc.db_sin.value = self.kf_eff * np.array([0.2, 0.2, 0.0])
             # dg.plug(stack_two_vectors(constVector(np.array([0.0, 0.0])), self.sliders.A_vec, 2, 1), self.wbc.kc_sin)
             # dg.plug(stack_two_vectors(constVector(np.array([0.0, 0.0])), self.sliders.B_vec, 2, 1), self.wbc.dc_sin)
@@ -425,9 +423,6 @@ class BoltWBCStepper:
                     ),
                     imp.gain_proportional_sin,
                 )
-                # imp.gain_proportional_sin.value = self.kf_eff * np.array(
-                #     [40.0, 40.0, 97.0, 0.0, 0.0, 0.0]
-                # )
                 dg.plug(
                     mul_double_vec(
                         contact,
@@ -440,9 +435,6 @@ class BoltWBCStepper:
                     ),
                     imp.gain_derivative_sin,
                 )
-                # imp.gain_derivative_sin.value = self.kf_eff * np.array(
-                #     [0.26, 0.23, 0.16, 0.0, 0.0, 0.0]
-                # )
             else:
                 contact = Component_of_vector("imp" + str(i))
                 contact.setIndex(not i)
@@ -481,12 +473,6 @@ class BoltWBCStepper:
                     ),
                     imp.gain_derivative_sin,
                 )
-                # imp.gain_proportional_sin.value = self.kf_eff * np.array(
-                #     [150.0, 150.0, 150.0, 0.0, 0.0, 0.0]
-                # )
-                # imp.gain_derivative_sin.value = self.kf_eff * np.array(
-                #     [5, 5, 5, 0.0, 0.0, 0.0]
-                # )
         self.wbc.w_com_ff_sin.value = 1 * np.array(
             [0.0, 0.0, 9.81 * 1.1, 0.0, 0.0, 0.0]
         )
