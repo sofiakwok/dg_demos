@@ -174,8 +174,8 @@ class BoltWBCStepper:
                     ),
                     contact.sin,
                 )
-                # dg.plug(self.stepper.stepper.contact_array_sout, contact.sin)
                 contact = contact.sout
+                # dg.plug(self.stepper.stepper.contact_array_sout, contact.sin)
                 dg.plug(
                     mul_double_vec(
                         contact,

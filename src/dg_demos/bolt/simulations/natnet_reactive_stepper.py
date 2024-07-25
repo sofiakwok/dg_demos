@@ -64,24 +64,24 @@ def simulate(with_gui=True):
     print("sim robot: " + str(robot))
     p.resetDebugVisualizerCamera(1.3, 60, -35, (0.0, 0.0, 0.0))
     p.setTimeStep(1.0 / sim_freq)
-    p.setRealTimeSimulation(0)
+    p.setRealTimeSimulation(1)
 
     # Update the initial state of the robot.
     q0 = np.matrix(BoltConfig.initial_configuration).T
     qdot = np.matrix(BoltConfig.initial_velocity).T
     # q0[0] = -0.1
     # q0[1] = 0.0
-    q0[2] = 0.425631 #0.46 #0.536895 - 0.0649
+    q0[2] = 0.46 #0.536895 - 0.0649
     # q0[3] = 0.00216824
     # q0[4] = -0.0119718
     # q0[5] = -0.00174438
     # q0[6] = 0.999925
-    q0[7] = 0.0115453
-    q0[8] = 0.563461  # bends legs at 0.2 radians
-    q0[9] = -0.972232
-    q0[10] = 0.0204723
-    q0[11] = 0.581918
-    q0[12] = -0.912048
+    q0[7] = 0.0
+    q0[8] = 0.2  # bends legs at 0.2 radians
+    q0[9] = -0.4
+    q0[10] = 0.0
+    q0[11] = 0.2
+    q0[12] = -0.4
     print(q0)
 
     # mocap: translation: [-3.83942 0.949264 0.536983]
@@ -108,7 +108,7 @@ def simulate(with_gui=True):
     #ctrl.ramp_wbc(0, 1) # works with lower values when holding base
 
     # ctrl.bend_legs()
-    ctrl.start()
+    # ctrl.start()
     # steps, dt
     robot.run(10000, 0.0001)
     #TODO: use mocap signal from robot for run() 
