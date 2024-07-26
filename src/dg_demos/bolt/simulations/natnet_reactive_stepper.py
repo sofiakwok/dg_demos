@@ -60,29 +60,29 @@ def simulate(with_gui=True):
 
     #load position and velocity data from txt file
 
-    robot = get_bolt_robot(use_fixed_base=False, init_sliders_pose=4 * [1.0])
+    robot = get_bolt_robot(use_fixed_base=True, init_sliders_pose=4 * [1.0])
     print("sim robot: " + str(robot))
     p.resetDebugVisualizerCamera(1.3, 60, -35, (0.0, 0.0, 0.0))
     p.setTimeStep(1.0 / sim_freq)
-    p.setRealTimeSimulation(1)
+    p.setRealTimeSimulation(0)
 
     # Update the initial state of the robot.
     q0 = np.matrix(BoltConfig.initial_configuration).T
     qdot = np.matrix(BoltConfig.initial_velocity).T
     # q0[0] = -0.1
     # q0[1] = 0.0
-    q0[2] = 0.46 #0.536895 - 0.0649
+    q0[2] = 0.44 #0.536895 - 0.0649
     # q0[3] = 0.00216824
     # q0[4] = -0.0119718
     # q0[5] = -0.00174438
     # q0[6] = 0.999925
     q0[7] = 0.0
-    q0[8] = 0.2  # bends legs at 0.2 radians
-    q0[9] = -0.4
+    q0[8] = 0.4  # bends legs at 0.2 radians
+    q0[9] = -0.8
     q0[10] = 0.0
-    q0[11] = 0.2
-    q0[12] = -0.4
-    print(q0)
+    q0[11] = 0.4
+    q0[12] = -0.8
+    #print(q0)
 
     # mocap: translation: [-3.83942 0.949264 0.536983]
     # rotation: [x:0.00281365, y:-0.00689991, z:0.0752908, w:0.997134 ]
